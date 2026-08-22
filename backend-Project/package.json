@@ -1,0 +1,41 @@
+{
+  "name": "backend-Project",
+  "version": "1.0.0",
+  "description": "API principal e núcleo de negócio do PI do 6º semestre — plataforma de acompanhamento de evasão e sucesso acadêmico.",
+  "license": "ISC",
+  "author": "Guilherme Luís",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "prisma generate && node src/scripts/setup.js",
+    "setup": "node src/scripts/setup.js",
+    "prisma:push": "prisma db push",
+    "start": "node src/server.js",
+    "start:prod": "NODE_ENV=production node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node src/scripts/seed.js",
+    "seed:students": "node src/scripts/seedStudents.js"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "bcryptjs": "3.0.3",
+    "cors": "2.8.6",
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "jsonwebtoken": "9.0.3",
+    "mongodb": "^7.0.0",
+    "nodemailer": "^7.0.9",
+    "swagger-jsdoc": "6.3.0",
+    "swagger-ui-express": "5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "3.1.14",
+    "prisma": "6.19.3"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true
+  }
+}

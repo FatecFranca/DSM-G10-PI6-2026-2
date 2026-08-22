@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Plataforma de apoio à identificação e ao acompanhamento de estudantes em situação de evasão."
+    />
+    <title>Plataforma de Acompanhamento Educacional</title>
+
+    <!--
+      Define data-theme ANTES da primeira pintura, para não haver flash do
+      tema errado (escuro é o padrão nativo — ver src/state/ThemeContext.tsx).
+      Precisa ser síncrono e no <head>, antes de qualquer CSS ser aplicado.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('pi6.theme');
+          document.documentElement.setAttribute('data-theme', stored === 'light' ? 'light' : 'dark');
+        } catch (error) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "name": "backend-MD",
+  "version": "1.0.0",
+  "description": "Motor de Inteligência Artificial e Mineração de Dados do PI do 6º semestre — classificação de evasão e sucesso acadêmico.",
+  "license": "ISC",
+  "author": "Guilherme Luís",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "prisma generate && node src/scripts/setup.js",
+    "setup": "node src/scripts/setup.js",
+    "prisma:push": "prisma db push",
+    "start": "node src/server.js",
+    "start:prod": "NODE_ENV=production node src/server.js",
+    "dev": "nodemon src/server.js",
+    "ml:prepare": "node src/scripts/runMl.js prepare_data.py",
+    "ml:train": "node src/scripts/runMl.js train_model.py",
+    "ml:cluster": "node src/scripts/runMl.js train_clusters.py",
+    "ml:explore": "node src/scripts/runMl.js explore.py",
+    "ml:pipeline": "npm run ml:prepare && npm run ml:train && npm run ml:cluster",
+    "ml:register": "node src/scripts/registerModel.js"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "cors": "2.8.6",
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "mongodb": "^7.0.0",
+    "swagger-jsdoc": "6.3.0",
+    "swagger-ui-express": "5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "3.1.14",
+    "prisma": "6.19.3"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true
+  }
+}

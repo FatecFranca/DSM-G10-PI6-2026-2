@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DB_URL")
+}
+
+enum Role {
+  ADMIN
+  ANALYST
+  VIEWER
+}
+
+enum FollowUpStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name  String
+  email String @unique
+
+  passwordHash String
+
+  role Role @default(VIEWER)
+
+  institutionId String?      @db.ObjectId
+  institution   Institution? @relation(fields: [institutionId], references: [id])
+
+  active      Boolean   @default(true)
+  lastLoginAt DateTime?
+
+  passwordResetTokenHash String?
+  passwordResetExpiresAt DateTime?
+
+  createdStudents  Student[]  @relation("StudentCreatedBy")
+  requestedAnalyses Analysis[] @relation("AnalysisRequestedBy")
+  assignedFollowUps FollowUp[] @relation("FollowUpAssignedTo")
+  createdFollowUps  FollowUp[] @relation("FollowUpCreatedBy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([institutionId])
+  @@index([role])
+  @@index([passwordResetTokenHash])
+  @@map("users")
+}
+
+model Institution {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name String  @unique
+  city String?
+  state String?
+
+  type String?
+
+  email String?
+  phone String?
+
+  active Boolean @default(true)
+
+  users    User[]
+  students Student[]
+  analyses Analysis[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("institutions")
+}
+
+model Student {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  institutionId String      @db.ObjectId
+  institution   Institution @relation(fields: [institutionId], references: [id])
+
+  code String
+
+  name  String
+  email String?
+
+  course         String?
+  enrollmentYear Int?
+
+  features Json?
+
+  lastClassification String?
+  lastConfidence     Float?
+  lastAnalysisAt     DateTime?
+  lastPriority       Priority?
+
+  lastPriorityRank Int?
+
+  createdById String? @db.ObjectId
+  createdBy   User?   @relation("StudentCreatedBy", fields: [createdById], references: [id])
+
+  analyses  Analysis[]
+  followUps FollowUp[]
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([institutionId, code])
+  @@index([institutionId])
+  @@index([lastClassification])
+  @@index([lastPriority])
+  @@index([lastPriorityRank])
+  @@map("students")
+}
+
+model Analysis {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  studentId String  @db.ObjectId
+  student   Student @relation(fields: [studentId], references: [id])
+
+  institutionId String      @db.ObjectId
+  institution   Institution @relation(fields: [institutionId], references: [id])
+
+  classification String
+  classId        Int
+  confidence     Float?
+  probabilities  Json?
+
+  modelVersion String
+  algorithm    String
+
+  featuresSnapshot Json
+
+  clusterId      Int?
+  clusterVersion String?
+  attentionLevel String?
+
+  priority Priority
+
+  requestedById String? @db.ObjectId
+  requestedBy   User?   @relation("AnalysisRequestedBy", fields: [requestedById], references: [id])
+
+  followUps FollowUp[]
+
+  createdAt DateTime @default(now())
+
+  @@index([studentId, createdAt])
+  @@index([institutionId, createdAt])
+  @@index([classification])
+  @@index([priority])
+  @@index([createdAt])
+  @@map("analyses")
+}
+
+model FollowUp {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  studentId String  @db.ObjectId
+  student   Student @relation(fields: [studentId], references: [id])
+
+  analysisId String?   @db.ObjectId
+  analysis   Analysis? @relation(fields: [analysisId], references: [id])
+
+  status   FollowUpStatus @default(OPEN)
+  priority Priority       @default(MEDIUM)
+
+  priorityRank Int?
+
+  title String
+  notes String?
+
+  assignedToId String? @db.ObjectId
+  assignedTo   User?   @relation("FollowUpAssignedTo", fields: [assignedToId], references: [id])
+
+  createdById String? @db.ObjectId
+  createdBy   User?   @relation("FollowUpCreatedBy", fields: [createdById], references: [id])
+
+  dueDate    DateTime?
+  resolvedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+  @@index([assignedToId])
+  @@map("follow_ups")
+}

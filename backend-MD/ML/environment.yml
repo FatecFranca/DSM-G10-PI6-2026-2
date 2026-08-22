@@ -1,0 +1,34 @@
+# Ambiente de desenvolvimento da camada de ML/Mineração de Dados do backend-MD.
+# Etapa 1 do pipeline (seção 6.1.1 do CONTEXT.md): ambiente Python isolado do
+# runtime Node/Express, reprodutível e versionado no repositório.
+#
+# Criar:      conda env create -f ML/environment.yml
+# Ativar:     conda activate pi6-backend-md-ml
+# Atualizar:  conda env update -f ML/environment.yml --prune
+#
+# Jupyter, matplotlib e seaborn existem aqui porque são usados na
+# experimentação e na exploração visual (ML/explore.py). Eles NÃO precisam
+# estar no ambiente que serve as requisições HTTP — ver ML/requirements.txt.
+
+name: pi6-backend-md-ml
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.9
+
+  # Núcleo do pipeline — treino e inferência
+  - scikit-learn=1.6.1
+  - pandas=2.3.3
+  - numpy=2.0.2
+  - joblib=1.5.2
+
+  # Exploração visual — apenas desenvolvimento
+  - matplotlib=3.9.2
+  - seaborn=0.13.2
+
+  # Experimentação em notebook — apenas desenvolvimento
+  - jupyter
+  - ipykernel

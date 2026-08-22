@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DB_URL")
+}
+
+model MlModel {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  modelVersion String @unique
+
+  contractVersion String
+
+  algorithm String
+  task      String
+  classes   String[]
+
+  hyperparameters Json
+
+  dataset Json
+
+  features Json
+
+  preprocessing Json
+
+  metrics Json
+
+  featureImportance Json?
+
+  featureImportanceMethod String?
+
+  candidates Json
+
+  selectionRationale String
+
+  supportsProbability Boolean
+
+  environment Json
+
+  artifacts Json
+
+  trainedAt DateTime
+
+  isActive Boolean @default(false)
+
+  registeredAt DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([trainedAt])
+  @@map("ml_models")
+}
+
+model ClusteringModel {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  clusterVersion String @unique
+
+  algorithm String
+  task      String
+
+  k Int
+
+  hyperparameters Json
+
+  selectionRationale String
+
+  metrics Json
+
+  profiles Json
+
+  profileFeatures String[]
+
+  features      Json
+  preprocessing Json
+  dataset       Json
+  environment   Json
+
+  trainedAt DateTime
+
+  isActive Boolean @default(false)
+
+  registeredAt DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([trainedAt])
+  @@map("clustering_models")
+}

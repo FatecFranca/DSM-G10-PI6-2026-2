@@ -1,0 +1,24 @@
+# Dependências mínimas para EXECUTAR a inferência (etapa 4) — este é o conjunto
+# que precisa existir na máquina que serve as requisições HTTP.
+#
+# Bibliotecas de exploração (matplotlib, seaborn) e de experimentação (jupyter)
+# ficam fora daqui de propósito: a seção 6.1.1 do CONTEXT.md determina que o
+# ambiente de produção não precisa delas. Para o ambiente completo de
+# desenvolvimento, use ML/environment.yml (conda, Python 3.9).
+#
+# Alternativa sem conda (venv), usada quando conda não está disponível:
+#   py -3.10 -m venv ML/.venv
+#   ML/.venv/Scripts/python -m pip install -r ML/requirements.txt
+#
+# As versões são idênticas às fixadas na seção 6 do CONTEXT.md. Python 3.9 é o
+# alvo oficial (environment.yml); estas mesmas versões também instalam em 3.10,
+# o que permite recriar o ambiente sem conda.
+
+numpy==2.0.2
+pandas==2.3.3
+scikit-learn==1.6.1
+joblib==1.5.2
+
+# Descomente para rodar ML/explore.py (exploração visual, dev-only):
+# matplotlib==3.9.2
+# seaborn==0.13.2
