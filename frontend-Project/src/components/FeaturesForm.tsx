@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { FEATURE_DESCRIPTIONS } from '../data/featureDescriptions';
 import { useI18n } from '../state/I18nContext';
 import type { FeatureSpec, StudentFeatures } from '../types/api';
 import { Button, Field, TextInput } from './ui';
@@ -128,6 +129,7 @@ export function FeaturesForm({
                   label={feature.label}
                   htmlFor={`feature-${feature.name}`}
                   error={error}
+                  info={FEATURE_DESCRIPTIONS[feature.name]}
                   hint={
                     feature.kind === 'binary'
                       ? '0 ou 1'
