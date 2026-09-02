@@ -19,11 +19,18 @@ def load_artifacts() -> tuple[object, object, dict]:
                 f"Artefato de clusterização ausente: {path.name}. "
                 "Execute ML/train_clusters.py antes de solicitar agrupamento.",
             )
-    return (
-        joblib.load(cfg.CLUSTER_MODEL_FILE),
-        joblib.load(cfg.SCALER_FILE),
-        cfg.read_json(cfg.CLUSTER_METADATA_FILE),
-    )
+    try:
+        model = joblib.load(cfg.CLUSTER_MODEL_FILE)
+        scaler = joblib.load(cfg.SCALER_FILE)
+        metadata = cfg.read_json(cfg.CLUSTER_METADATA_FILE)
+    except Exception as error:
+        fail(
+            "CLUSTER_ARTIFACT_CORRUPTED",
+            "Falha ao carregar os artefatos de agrupamento — arquivo corrompido ou incompatível "
+            f"com a versão instalada das bibliotecas: {error}. "
+            "Execute ML/train_clusters.py novamente para regenerar os artefatos.",
+        )
+    return model, scaler, metadata
 
 
 def main() -> None:

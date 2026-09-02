@@ -10,10 +10,46 @@ const PYTHON_ERROR_STATUS = {
   INVALID_FEATURE_VALUE: 400,
   MODEL_NOT_TRAINED: 503,
   CLUSTERING_NOT_TRAINED: 503,
+  MODEL_ARTIFACT_CORRUPTED: 500,
+  CLUSTER_ARTIFACT_CORRUPTED: 500,
   INFERENCE_FAILED: 500,
 };
 
-export function runPythonScript(script, payload) {
+// Cada chamada sobe um interpretador Python novo (importa sklearn/pandas/numpy
+// do zero). Sem limite, um pico de requisições simultâneas competiria por
+// CPU/memória e poderia estourar ML_TIMEOUT_MS por causa da concorrência, não
+// da carga real de cada chamada — daí o semáforo abaixo, configurável via
+// ML_MAX_CONCURRENCY.
+let activeCount = 0;
+const waitQueue = [];
+
+function acquireSlot() {
+  if (activeCount < env.ML_MAX_CONCURRENCY) {
+    activeCount += 1;
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => waitQueue.push(resolve));
+}
+
+function releaseSlot() {
+  const next = waitQueue.shift();
+  if (next) {
+    next();
+    return;
+  }
+  activeCount = Math.max(0, activeCount - 1);
+}
+
+export async function runPythonScript(script, payload) {
+  await acquireSlot();
+  try {
+    return await spawnPythonScript(script, payload);
+  } finally {
+    releaseSlot();
+  }
+}
+
+function spawnPythonScript(script, payload) {
   const scriptPath = path.join(env.ML_DIR, script);
 
   return new Promise((resolve, reject) => {

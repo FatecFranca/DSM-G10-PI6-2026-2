@@ -228,7 +228,419 @@
     "createdBy": "Registered by",
     "outOfRangeTitle": "Values outside the range observed during training",
     "outOfRangeHint": "The record was saved, but the model extrapolates on these attributes — confidence tends to be less reliable.",
-    "valueOutOfBounds": "Must be between {{min}} and {{max}}."
+    "valueOutOfBounds": "Must be between {{min}} and {{max}}.",
+    "gradeScaleLabel": "Grading scale",
+    "gradeScalePt": "Portuguese (original) — 0–20 / 0–200",
+    "gradeScaleBr": "Brazilian — 0–10",
+    "gradeScaleHint": "The predictive model was trained on data from Portuguese institutions, whose grading scale is 0–20 (semester grade) and 0–200 (previous qualification and admission grade). When \"Brazilian\" is selected, values entered on the 0–10 scale are linearly converted to the corresponding Portuguese scale before submission for analysis. The conversion applies exclusively to the four grade fields; all other attributes are unaffected.",
+    "gradeScaleFieldHint": "0 – 10 (converted to the Portuguese scale on submit)",
+    "featureExamplesNote": "Examples — non-exhaustive list of codes.",
+    "featureGroups": {
+      "academic1": "1st semester",
+      "academic2": "2nd semester",
+      "admission": "Admission and qualification",
+      "social": "Socioeconomic profile",
+      "macro": "Economic context"
+    }
+  },
+  "featureDescriptions": {
+    "marital_status": {
+      "text": "Student's marital status at the time of enrollment. Categorical code.",
+      "options": [
+        { "code": "1", "label": "Single" },
+        { "code": "2", "label": "Married" },
+        { "code": "3", "label": "Widowed" },
+        { "code": "4", "label": "Divorced" },
+        { "code": "5", "label": "Civil (de facto) union" },
+        { "code": "6", "label": "Legally separated" }
+      ]
+    },
+    "application_mode": {
+      "text": "Admission mode/pathway used in the application to the course. Categorical code — the numeric value identifies the access pathway, with no order or magnitude relationship.",
+      "options": [
+        { "code": "1", "label": "1st phase, general contingent" },
+        { "code": "2", "label": "Ordinance No. 612/93" },
+        { "code": "5", "label": "1st phase, special contingent (Azores Island)" },
+        { "code": "7", "label": "Holder of another higher education course" },
+        { "code": "10", "label": "Ordinance No. 854-B/99" },
+        { "code": "15", "label": "International student (bachelor's)" },
+        { "code": "16", "label": "1st phase, special contingent (Madeira Island)" },
+        { "code": "17", "label": "2nd phase, general contingent" },
+        { "code": "18", "label": "3rd phase, general contingent" },
+        { "code": "26", "label": "Ordinance No. 533-A/99, item b2) (Different Plan)" },
+        { "code": "27", "label": "Ordinance No. 533-A/99, item b3) (Other Institution)" },
+        { "code": "39", "label": "Over 23 years old" },
+        { "code": "42", "label": "Transfer" },
+        { "code": "43", "label": "Change of course" },
+        { "code": "44", "label": "Technological specialization diploma holder" },
+        { "code": "51", "label": "Change of institution/course" },
+        { "code": "53", "label": "Short cycle diploma holder" },
+        { "code": "57", "label": "Change of institution/course (international)" }
+      ]
+    },
+    "application_order": {
+      "text": "Preference ranking assigned to this course by the student at the time of application, among the options indicated.",
+      "options": [
+        { "code": "0", "label": "Course indicated as 1st choice" },
+        { "code": "1 to 8", "label": "Intermediate preference ranking" },
+        { "code": "9", "label": "Last choice in the application" }
+      ]
+    },
+    "course": {
+      "text": "Identifier code of the course in which the student is enrolled. This is a categorical identifier; the numeric value does not represent a quantity, grade, or order of magnitude.",
+      "options": [
+        { "code": "33", "label": "Biofuel Production Technologies" },
+        { "code": "171", "label": "Animation and Multimedia Design" },
+        { "code": "8014", "label": "Social Service (evening attendance)" },
+        { "code": "9003", "label": "Agronomy" },
+        { "code": "9070", "label": "Communication Design" },
+        { "code": "9085", "label": "Veterinary Nursing" },
+        { "code": "9119", "label": "Informatics Engineering" },
+        { "code": "9130", "label": "Equinculture" },
+        { "code": "9147", "label": "Management" },
+        { "code": "9238", "label": "Social Service" },
+        { "code": "9254", "label": "Tourism" },
+        { "code": "9500", "label": "Nursing" },
+        { "code": "9556", "label": "Oral Hygiene" },
+        { "code": "9670", "label": "Advertising and Marketing Management" },
+        { "code": "9773", "label": "Journalism and Communication" },
+        { "code": "9853", "label": "Basic Education" },
+        { "code": "9991", "label": "Management (evening attendance)" }
+      ]
+    },
+    "daytime_evening_attendance": {
+      "text": "Class attendance shift. Binary field.",
+      "options": [
+        { "code": "1", "label": "Daytime" },
+        { "code": "0", "label": "Evening" }
+      ]
+    },
+    "previous_qualification": {
+      "text": "Level of qualification/education completed by the student prior to enrolling in the current course. Categorical code.",
+      "options": [
+        { "code": "1", "label": "Secondary education" },
+        { "code": "2", "label": "Higher education — bachelor's degree" },
+        { "code": "3", "label": "Higher education — degree" },
+        { "code": "4", "label": "Higher education — master's" },
+        { "code": "5", "label": "Higher education — doctorate" },
+        { "code": "6", "label": "Frequency of higher education (not completed)" },
+        { "code": "9", "label": "12th year of schooling — not completed" },
+        { "code": "10", "label": "11th year of schooling — not completed" },
+        { "code": "12", "label": "Other — 11th year of schooling" },
+        { "code": "14", "label": "10th year of schooling" },
+        { "code": "15", "label": "10th year of schooling — not completed" },
+        { "code": "19", "label": "Basic education, 3rd cycle (9th/10th/11th year) or equivalent" },
+        { "code": "38", "label": "Basic education, 2nd cycle (6th/7th/8th year) or equivalent" },
+        { "code": "39", "label": "Technological specialization course" },
+        { "code": "40", "label": "Higher education — degree (1st cycle)" },
+        { "code": "42", "label": "Professional higher technical course" },
+        { "code": "43", "label": "Higher education — master (2nd cycle)" }
+      ]
+    },
+    "previous_qualification_grade": {
+      "text": "Grade obtained in the previous qualification, expressed on the Portuguese higher education application scale. Theoretical range of 0 to 200; the closer to 200, the higher the performance recorded in the prior education."
+    },
+    "nationality": {
+      "text": "Code for the student's country of nationality. Categorical field.",
+      "options": [
+        { "code": "1", "label": "Portuguese" },
+        { "code": "2", "label": "German" },
+        { "code": "6", "label": "Spanish" },
+        { "code": "11", "label": "Italian" },
+        { "code": "13", "label": "Dutch" },
+        { "code": "14", "label": "English" },
+        { "code": "17", "label": "Lithuanian" },
+        { "code": "21", "label": "Angolan" },
+        { "code": "22", "label": "Cape Verdean" },
+        { "code": "24", "label": "Guinean" },
+        { "code": "25", "label": "Mozambican" },
+        { "code": "26", "label": "Santomean" },
+        { "code": "32", "label": "Turkish" },
+        { "code": "41", "label": "Brazilian" },
+        { "code": "62", "label": "Romanian" },
+        { "code": "100", "label": "Moldovan" },
+        { "code": "101", "label": "Mexican" },
+        { "code": "103", "label": "Ukrainian" },
+        { "code": "105", "label": "Russian" },
+        { "code": "108", "label": "Cuban" },
+        { "code": "109", "label": "Colombian" }
+      ]
+    },
+    "mothers_qualification": {
+      "text": "Educational attainment level of the student's mother. Categorical code.",
+      "options": [
+        { "code": "1", "label": "Secondary education — 12th year of schooling or equivalent" },
+        { "code": "2", "label": "Higher education — bachelor's degree" },
+        { "code": "3", "label": "Higher education — degree" },
+        { "code": "4", "label": "Higher education — master's" },
+        { "code": "5", "label": "Higher education — doctorate" },
+        { "code": "6", "label": "Frequency of higher education" },
+        { "code": "9", "label": "12th year of schooling — not completed" },
+        { "code": "10", "label": "11th year of schooling — not completed" },
+        { "code": "11", "label": "7th year (old system)" },
+        { "code": "12", "label": "Other — 11th year of schooling" },
+        { "code": "14", "label": "10th year of schooling" },
+        { "code": "18", "label": "General commerce course" },
+        { "code": "19", "label": "Basic education, 3rd cycle (9th/10th/11th year) or equivalent" },
+        { "code": "22", "label": "Technical-professional course" },
+        { "code": "26", "label": "7th year of schooling" },
+        { "code": "27", "label": "2nd cycle of the general high school course" },
+        { "code": "29", "label": "9th year of schooling — not completed" },
+        { "code": "30", "label": "8th year of schooling" },
+        { "code": "34", "label": "Unknown" },
+        { "code": "35", "label": "Cannot read or write" },
+        { "code": "36", "label": "Can read without having completed the 4th year" },
+        { "code": "37", "label": "Basic education, 1st cycle (4th/5th year) or equivalent" },
+        { "code": "38", "label": "Basic education, 2nd cycle (6th/7th/8th year) or equivalent" },
+        { "code": "39", "label": "Technological specialization course" },
+        { "code": "40", "label": "Higher education — degree (1st cycle)" },
+        { "code": "41", "label": "Specialized higher studies course" },
+        { "code": "42", "label": "Professional higher technical course" },
+        { "code": "43", "label": "Higher education — master (2nd cycle)" },
+        { "code": "44", "label": "Higher education — doctorate (3rd cycle)" }
+      ]
+    },
+    "fathers_qualification": {
+      "text": "Educational attainment level of the student's father. Categorical code.",
+      "options": [
+        { "code": "1", "label": "Secondary education — 12th year of schooling or equivalent" },
+        { "code": "2", "label": "Higher education — bachelor's degree" },
+        { "code": "3", "label": "Higher education — degree" },
+        { "code": "4", "label": "Higher education — master's" },
+        { "code": "5", "label": "Higher education — doctorate" },
+        { "code": "6", "label": "Frequency of higher education" },
+        { "code": "9", "label": "12th year of schooling — not completed" },
+        { "code": "10", "label": "11th year of schooling — not completed" },
+        { "code": "11", "label": "7th year (old system)" },
+        { "code": "12", "label": "Other — 11th year of schooling" },
+        { "code": "13", "label": "2nd year of the complementary high school course" },
+        { "code": "14", "label": "10th year of schooling" },
+        { "code": "18", "label": "General commerce course" },
+        { "code": "19", "label": "Basic education, 3rd cycle (9th/10th/11th year) or equivalent" },
+        { "code": "20", "label": "Complementary high school course" },
+        { "code": "22", "label": "Technical-professional course" },
+        { "code": "25", "label": "Complementary high school course — not completed" },
+        { "code": "26", "label": "7th year of schooling" },
+        { "code": "27", "label": "2nd cycle of the general high school course" },
+        { "code": "29", "label": "9th year of schooling — not completed" },
+        { "code": "30", "label": "8th year of schooling" },
+        { "code": "31", "label": "General course of administration and commerce" },
+        { "code": "33", "label": "Supplementary accounting and administration course" },
+        { "code": "34", "label": "Unknown" },
+        { "code": "35", "label": "Cannot read or write" },
+        { "code": "36", "label": "Can read without having completed the 4th year" },
+        { "code": "37", "label": "Basic education, 1st cycle (4th/5th year) or equivalent" },
+        { "code": "38", "label": "Basic education, 2nd cycle (6th/7th/8th year) or equivalent" },
+        { "code": "39", "label": "Technological specialization course" },
+        { "code": "40", "label": "Higher education — degree (1st cycle)" },
+        { "code": "41", "label": "Specialized higher studies course" },
+        { "code": "42", "label": "Professional higher technical course" },
+        { "code": "43", "label": "Higher education — master (2nd cycle)" },
+        { "code": "44", "label": "Higher education — doctorate (3rd cycle)" }
+      ]
+    },
+    "mothers_occupation": {
+      "text": "Occupation of the student's mother, classified by occupational category. Categorical code.",
+      "options": [
+        { "code": "0", "label": "Student" },
+        { "code": "1", "label": "Representative of the legislative/executive power, director, or executive manager" },
+        { "code": "2", "label": "Specialist in intellectual and scientific activities" },
+        { "code": "3", "label": "Intermediate level technician or profession" },
+        { "code": "4", "label": "Administrative staff" },
+        { "code": "5", "label": "Personal services, security, and sales worker" },
+        { "code": "6", "label": "Farmer and skilled worker in agriculture, fisheries, and forestry" },
+        { "code": "7", "label": "Skilled worker in industry, construction, and crafts" },
+        { "code": "8", "label": "Installation and machine operator and assembly worker" },
+        { "code": "9", "label": "Unskilled worker" },
+        { "code": "10", "label": "Armed forces profession" },
+        { "code": "90", "label": "Other situation" },
+        { "code": "99", "label": "Blank (not informed)" },
+        { "code": "122", "label": "Health professional" },
+        { "code": "123", "label": "Teacher" },
+        { "code": "125", "label": "Specialist in information and communication technologies (ICT)" },
+        { "code": "131", "label": "Intermediate level science and engineering technician" },
+        { "code": "132", "label": "Intermediate level health technician" },
+        { "code": "134", "label": "Intermediate level technician in legal, social, sports, cultural, and similar services" },
+        { "code": "141", "label": "Office worker, general secretary, and data processing operator" },
+        { "code": "143", "label": "Data, accounting, statistical, financial, and registry-related operator" },
+        { "code": "144", "label": "Other administrative support staff" },
+        { "code": "151", "label": "Personal service worker" },
+        { "code": "152", "label": "Seller" },
+        { "code": "153", "label": "Personal care worker and the like" },
+        { "code": "171", "label": "Skilled construction worker and the like, except electricians" },
+        { "code": "173", "label": "Skilled worker in printing, precision instruments, jewelry, and crafts" },
+        { "code": "175", "label": "Worker in food processing, woodworking, clothing, and other industries and crafts" },
+        { "code": "191", "label": "Cleaning worker" },
+        { "code": "192", "label": "Unskilled worker in agriculture, animal production, fisheries, and forestry" },
+        { "code": "193", "label": "Unskilled worker in extractive industry, construction, manufacturing, and transport" },
+        { "code": "194", "label": "Meal preparation assistant" }
+      ]
+    },
+    "fathers_occupation": {
+      "text": "Occupation of the student's father, classified by occupational category. Categorical code.",
+      "options": [
+        { "code": "0", "label": "Student" },
+        { "code": "1", "label": "Representative of the legislative/executive power, director, or executive manager" },
+        { "code": "2", "label": "Specialist in intellectual and scientific activities" },
+        { "code": "3", "label": "Intermediate level technician or profession" },
+        { "code": "4", "label": "Administrative staff" },
+        { "code": "5", "label": "Personal services, security, and sales worker" },
+        { "code": "6", "label": "Farmer and skilled worker in agriculture, fisheries, and forestry" },
+        { "code": "7", "label": "Skilled worker in industry, construction, and crafts" },
+        { "code": "8", "label": "Installation and machine operator and assembly worker" },
+        { "code": "9", "label": "Unskilled worker" },
+        { "code": "10", "label": "Armed forces profession" },
+        { "code": "90", "label": "Other situation" },
+        { "code": "99", "label": "Blank (not informed)" },
+        { "code": "101", "label": "Armed forces officer" },
+        { "code": "102", "label": "Armed forces sergeant" },
+        { "code": "103", "label": "Other armed forces personnel" },
+        { "code": "112", "label": "Director of administrative and commercial services" },
+        { "code": "114", "label": "Hotel, catering, trade, and other services director" },
+        { "code": "121", "label": "Specialist in physical sciences, mathematics, engineering, and related techniques" },
+        { "code": "122", "label": "Health professional" },
+        { "code": "123", "label": "Teacher" },
+        { "code": "124", "label": "Specialist in finance, accounting, administrative organization, and public/commercial relations" },
+        { "code": "131", "label": "Intermediate level science and engineering technician" },
+        { "code": "132", "label": "Intermediate level health technician" },
+        { "code": "134", "label": "Intermediate level technician in legal, social, sports, cultural, and similar services" },
+        { "code": "135", "label": "Information and communication technology technician" },
+        { "code": "141", "label": "Office worker, general secretary, and data processing operator" },
+        { "code": "143", "label": "Data, accounting, statistical, financial, and registry-related operator" },
+        { "code": "144", "label": "Other administrative support staff" },
+        { "code": "151", "label": "Personal service worker" },
+        { "code": "152", "label": "Seller" },
+        { "code": "153", "label": "Personal care worker and the like" },
+        { "code": "154", "label": "Protection and security services personnel" },
+        { "code": "161", "label": "Market-oriented farmer and skilled agricultural/animal production worker" },
+        { "code": "163", "label": "Subsistence farmer, livestock keeper, fisherman, hunter, or gatherer" },
+        { "code": "171", "label": "Skilled construction worker and the like, except electricians" },
+        { "code": "172", "label": "Skilled worker in metallurgy and metalworking" },
+        { "code": "174", "label": "Skilled worker in electricity and electronics" },
+        { "code": "175", "label": "Worker in food processing, woodworking, clothing, and other industries and crafts" },
+        { "code": "181", "label": "Fixed plant and machine operator" },
+        { "code": "182", "label": "Assembly worker" },
+        { "code": "183", "label": "Vehicle driver and mobile equipment operator" },
+        { "code": "192", "label": "Unskilled worker in agriculture, animal production, fisheries, and forestry" },
+        { "code": "193", "label": "Unskilled worker in extractive industry, construction, manufacturing, and transport" },
+        { "code": "194", "label": "Meal preparation assistant" },
+        { "code": "195", "label": "Street vendor (except food) and street service provider" }
+      ]
+    },
+    "admission_grade": {
+      "text": "Final admission/application grade for the current course, which determined the student's placement. Theoretical range of 0 to 200, on the same scale as the previous qualification grade."
+    },
+    "displaced": {
+      "text": "Indicates whether the student relocated from their home city/region to attend the current program. Binary field.",
+      "options": [
+        { "code": "1", "label": "Yes, relocation occurred" },
+        { "code": "0", "label": "No, remains in the city of origin" }
+      ]
+    },
+    "educational_special_needs": {
+      "text": "Indicates whether a special educational need is recorded for the student. Binary field.",
+      "options": [
+        { "code": "1", "label": "Yes" },
+        { "code": "0", "label": "No" }
+      ]
+    },
+    "debtor": {
+      "text": "Indicates whether the student has an outstanding financial obligation (debt) recorded with the institution. Binary field.",
+      "options": [
+        { "code": "1", "label": "Yes, in default" },
+        { "code": "0", "label": "No, no outstanding balance" }
+      ]
+    },
+    "tuition_fees_up_to_date": {
+      "text": "Indicates whether the student's tuition payments are up to date. Binary field.",
+      "options": [
+        { "code": "1", "label": "Up to date" },
+        { "code": "0", "label": "In arrears" }
+      ],
+      "note": "Attribute with significant weight in the dropout-risk predictive model."
+    },
+    "gender": {
+      "text": "Student's gender, as recorded in the source dataset. Binary field.",
+      "options": [
+        { "code": "1", "label": "Male" },
+        { "code": "0", "label": "Female" }
+      ]
+    },
+    "scholarship_holder": {
+      "text": "Indicates whether the student is a recipient of a scholarship. Binary field.",
+      "options": [
+        { "code": "1", "label": "Yes, scholarship holder" },
+        { "code": "0", "label": "Not a scholarship holder" }
+      ]
+    },
+    "age_at_enrollment": {
+      "text": "Student's age, in completed years, at the date of enrollment in the course."
+    },
+    "international": {
+      "text": "Indicates whether the student holds a foreign nationality relative to the institution's country. Binary field.",
+      "options": [
+        { "code": "1", "label": "Yes, international student" },
+        { "code": "0", "label": "No, national of the institution's country" }
+      ]
+    },
+    "curricular_units_1st_sem_credited": {
+      "text": "Number of 1st-semester Curricular Units (CUs) credited through recognition of prior learning — courses waived by equivalence to prior education, without being taken at the current institution.",
+      "note": "Higher values indicate a greater volume of credit recognition."
+    },
+    "curricular_units_1st_sem_enrolled": {
+      "text": "Number of Curricular Units (CUs) in which the student enrolled during the 1st semester."
+    },
+    "curricular_units_1st_sem_evaluations": {
+      "text": "Number of assessments (exams/assignments) actually completed by the student in the 1st semester.",
+      "note": "May exceed the number of enrolled CUs, since a single course may have more than one assessment instrument."
+    },
+    "curricular_units_1st_sem_approved": {
+      "text": "Number of Curricular Units (CUs) the student passed in the 1st semester.",
+      "note": "The most relevant academic performance indicator: the higher the value, the better the recorded performance for the period."
+    },
+    "curricular_units_1st_sem_grade": {
+      "text": "Student's average grade across the CUs assessed in the 1st semester, on the Portuguese 0-to-20 scale.",
+      "note": "A value of 0 usually indicates no CUs were assessed in the period."
+    },
+    "curricular_units_1st_sem_without_evaluations": {
+      "text": "Number of 1st-semester CUs in which the student remained enrolled without completing any assessment.",
+      "note": "High values are an indication of early disengagement from academic activities in the period."
+    },
+    "curricular_units_2nd_sem_credited": {
+      "text": "Number of 2nd-semester Curricular Units (CUs) credited through recognition of prior learning — courses waived by equivalence to prior education, without being taken at the current institution.",
+      "note": "Higher values indicate a greater volume of credit recognition."
+    },
+    "curricular_units_2nd_sem_enrolled": {
+      "text": "Number of Curricular Units (CUs) in which the student enrolled during the 2nd semester."
+    },
+    "curricular_units_2nd_sem_evaluations": {
+      "text": "Number of assessments (exams/assignments) actually completed by the student in the 2nd semester.",
+      "note": "May exceed the number of enrolled CUs, since a single course may have more than one assessment instrument."
+    },
+    "curricular_units_2nd_sem_approved": {
+      "text": "Number of Curricular Units (CUs) the student passed in the 2nd semester.",
+      "note": "The attribute with the greatest weight in the system's predictive model: low values tend to raise the identified dropout risk."
+    },
+    "curricular_units_2nd_sem_grade": {
+      "text": "Student's average grade across the CUs assessed in the 2nd semester, on the Portuguese 0-to-20 scale.",
+      "note": "A value of 0 usually indicates no CUs were assessed in the period."
+    },
+    "curricular_units_2nd_sem_without_evaluations": {
+      "text": "Number of 2nd-semester CUs in which the student remained enrolled without completing any assessment.",
+      "note": "High values are an indication of early disengagement from academic activities in the period."
+    },
+    "unemployment_rate": {
+      "text": "National unemployment rate (%) for the period of the student's enrollment.",
+      "note": "A macroeconomic indicator of the period's context, not an individual characteristic of the student."
+    },
+    "inflation_rate": {
+      "text": "National inflation rate (%) for the period of the student's enrollment.",
+      "note": "A macroeconomic indicator of the period's context; may take negative values in deflationary scenarios."
+    },
+    "gdp": {
+      "text": "Variation of the national Gross Domestic Product (GDP, %) for the period of the student's enrollment.",
+      "note": "A macroeconomic indicator of the period's context; may take negative values in economic contraction scenarios."
+    }
   },
   "analysis": {
     "title": "Analysis",

@@ -392,6 +392,7 @@ input:-webkit-autofill:focus {
   min-width: 0;
   max-width: 1440px;
   width: 100%;
+  overflow-x: hidden;
 }
 
 .page-header {
@@ -679,12 +680,16 @@ input:-webkit-autofill:focus {
 }
 
 .info-tooltip__bubble {
+  --tt-shift: 0px;
   position: absolute;
   bottom: calc(100% + 9px);
   left: 50%;
-  transform: translateX(-50%) translateY(4px);
+  transform: translateX(calc(-50% + var(--tt-shift))) translateY(4px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: max-content;
-  max-width: 300px;
+  max-width: min(340px, calc(100vw - 32px));
   padding: 10px 12px;
   border-radius: var(--radius);
   background: var(--surface-inset);
@@ -693,10 +698,10 @@ input:-webkit-autofill:focus {
   color: var(--text);
   font-size: 12.5px;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.55;
   text-transform: none;
   letter-spacing: normal;
-  white-space: pre-line;
+  white-space: normal;
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
@@ -708,7 +713,66 @@ input:-webkit-autofill:focus {
 .info-tooltip:focus .info-tooltip__bubble {
   visibility: visible;
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateX(calc(-50% + var(--tt-shift))) translateY(0);
+}
+
+.info-tooltip__bubble--wide {
+  max-width: min(460px, calc(100vw - 32px));
+}
+
+.info-tooltip__bubble--xwide {
+  max-width: min(580px, calc(100vw - 32px));
+}
+
+.info-tooltip__text {
+  display: block;
+}
+
+.info-tooltip__options {
+  display: block;
+  font-size: 12px;
+}
+
+.info-tooltip__bubble--wide .info-tooltip__options {
+  column-count: 2;
+  column-gap: 16px;
+}
+
+.info-tooltip__bubble--xwide .info-tooltip__options {
+  column-count: 3;
+  column-gap: 16px;
+}
+
+.info-tooltip__option {
+  display: block;
+  break-inside: avoid;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.info-tooltip__option:last-child {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.info-tooltip__code {
+  display: inline-block;
+  min-width: 20px;
+  margin-right: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand);
+  vertical-align: top;
+}
+
+.info-tooltip__note {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-style: italic;
 }
 
 .input,

@@ -228,7 +228,419 @@
     "createdBy": "Cadastrado por",
     "outOfRangeTitle": "Valores fora da faixa observada no treino",
     "outOfRangeHint": "O cadastro foi salvo, mas o modelo extrapola nesses atributos — a confiança tende a ser menos confiável.",
-    "valueOutOfBounds": "Deve estar entre {{min}} e {{max}}."
+    "valueOutOfBounds": "Deve estar entre {{min}} e {{max}}.",
+    "gradeScaleLabel": "Sistema de notas",
+    "gradeScalePt": "Portuguesa (original) — 0–20 / 0–200",
+    "gradeScaleBr": "Brasileira — 0–10",
+    "gradeScaleHint": "O modelo preditivo foi treinado com dados de instituições portuguesas, cuja escala de avaliação é 0–20 (nota do semestre) e 0–200 (qualificação anterior e nota de admissão). Ao selecionar \"Brasileira\", os valores informados na escala 0–10 são convertidos linearmente para a escala portuguesa correspondente antes do envio à análise. A conversão aplica-se exclusivamente aos quatro campos de nota; os demais atributos não são afetados.",
+    "gradeScaleFieldHint": "0 – 10 (convertida para a escala portuguesa ao enviar)",
+    "featureExamplesNote": "Exemplos — lista não exaustiva de códigos.",
+    "featureGroups": {
+      "academic1": "1º semestre",
+      "academic2": "2º semestre",
+      "admission": "Ingresso e qualificação",
+      "social": "Perfil socioeconômico",
+      "macro": "Contexto econômico"
+    }
+  },
+  "featureDescriptions": {
+    "marital_status": {
+      "text": "Estado civil do estudante no momento da matrícula. Código categórico.",
+      "options": [
+        { "code": "1", "label": "Solteiro(a)" },
+        { "code": "2", "label": "Casado(a)" },
+        { "code": "3", "label": "Viúvo(a)" },
+        { "code": "4", "label": "Divorciado(a)" },
+        { "code": "5", "label": "União estável" },
+        { "code": "6", "label": "Legalmente separado(a)" }
+      ]
+    },
+    "application_mode": {
+      "text": "Modalidade/via de ingresso utilizada na candidatura ao curso. Código categórico — o valor numérico identifica a via de acesso, sem relação de ordem ou grandeza.",
+      "options": [
+        { "code": "1", "label": "1ª fase, contingente geral" },
+        { "code": "2", "label": "Portaria nº 612/93" },
+        { "code": "5", "label": "1ª fase, contingente especial (Ilha dos Açores)" },
+        { "code": "7", "label": "Titular de outro curso superior" },
+        { "code": "10", "label": "Portaria nº 854-B/99" },
+        { "code": "15", "label": "Estudante internacional (bacharelado/licenciatura)" },
+        { "code": "16", "label": "1ª fase, contingente especial (Ilha da Madeira)" },
+        { "code": "17", "label": "2ª fase, contingente geral" },
+        { "code": "18", "label": "3ª fase, contingente geral" },
+        { "code": "26", "label": "Portaria nº 533-A/99, alínea b2) (Plano Diferente)" },
+        { "code": "27", "label": "Portaria nº 533-A/99, alínea b3) (Outra Instituição)" },
+        { "code": "39", "label": "Maiores de 23 anos" },
+        { "code": "42", "label": "Transferência de instituição" },
+        { "code": "43", "label": "Mudança de curso" },
+        { "code": "44", "label": "Titular de diploma de especialização tecnológica" },
+        { "code": "51", "label": "Mudança de instituição/curso" },
+        { "code": "53", "label": "Titular de diploma de ciclo curto" },
+        { "code": "57", "label": "Mudança de instituição/curso (internacional)" }
+      ]
+    },
+    "application_order": {
+      "text": "Posição de preferência atribuída a este curso pelo estudante no ato da candidatura, entre as opções indicadas.",
+      "options": [
+        { "code": "0", "label": "Curso indicado como 1ª opção" },
+        { "code": "1 a 8", "label": "Posições intermediárias de preferência" },
+        { "code": "9", "label": "Última opção na candidatura" }
+      ]
+    },
+    "course": {
+      "text": "Código identificador do curso em que o estudante está matriculado. Trata-se de um identificador categórico; o valor numérico não representa quantidade, nota ou ordem de grandeza.",
+      "options": [
+        { "code": "33", "label": "Tecnologias de Produção de Biocombustível" },
+        { "code": "171", "label": "Animação e Design Multimédia" },
+        { "code": "8014", "label": "Serviço Social (turno noturno)" },
+        { "code": "9003", "label": "Agronomia" },
+        { "code": "9070", "label": "Design de Comunicação" },
+        { "code": "9085", "label": "Enfermagem Veterinária" },
+        { "code": "9119", "label": "Engenharia Informática" },
+        { "code": "9130", "label": "Equinocultura" },
+        { "code": "9147", "label": "Gestão" },
+        { "code": "9238", "label": "Serviço Social" },
+        { "code": "9254", "label": "Turismo" },
+        { "code": "9500", "label": "Enfermagem" },
+        { "code": "9556", "label": "Higiene Oral" },
+        { "code": "9670", "label": "Publicidade e Marketing" },
+        { "code": "9773", "label": "Jornalismo e Comunicação" },
+        { "code": "9853", "label": "Educação Básica" },
+        { "code": "9991", "label": "Gestão (turno noturno)" }
+      ]
+    },
+    "daytime_evening_attendance": {
+      "text": "Turno de frequência das aulas. Campo binário.",
+      "options": [
+        { "code": "1", "label": "Diurno" },
+        { "code": "0", "label": "Noturno" }
+      ]
+    },
+    "previous_qualification": {
+      "text": "Nível de qualificação/formação concluída pelo estudante antes do ingresso no curso atual. Código categórico.",
+      "options": [
+        { "code": "1", "label": "Ensino secundário" },
+        { "code": "2", "label": "Ensino superior — bacharelado" },
+        { "code": "3", "label": "Ensino superior — licenciatura" },
+        { "code": "4", "label": "Ensino superior — mestrado" },
+        { "code": "5", "label": "Ensino superior — doutorado" },
+        { "code": "6", "label": "Frequência do ensino superior (não concluído)" },
+        { "code": "9", "label": "12º ano não concluído" },
+        { "code": "10", "label": "11º ano não concluído" },
+        { "code": "12", "label": "Outro — 11º ano de escolaridade" },
+        { "code": "14", "label": "10º ano de escolaridade" },
+        { "code": "15", "label": "10º ano não concluído" },
+        { "code": "19", "label": "Ensino básico, 3º ciclo (9º/10º/11º ano) ou equivalente" },
+        { "code": "38", "label": "Ensino básico, 2º ciclo (6º/7º/8º ano) ou equivalente" },
+        { "code": "39", "label": "Curso de especialização tecnológica" },
+        { "code": "40", "label": "Ensino superior — licenciatura (1º ciclo)" },
+        { "code": "42", "label": "Curso técnico superior profissional" },
+        { "code": "43", "label": "Ensino superior — mestrado (2º ciclo)" }
+      ]
+    },
+    "previous_qualification_grade": {
+      "text": "Nota obtida na qualificação anterior, expressa na escala portuguesa de candidatura ao ensino superior. Intervalo teórico de 0 a 200; quanto mais próximo de 200, maior o desempenho registrado na formação anterior."
+    },
+    "nationality": {
+      "text": "Código do país de nacionalidade do estudante. Campo categórico.",
+      "options": [
+        { "code": "1", "label": "Portuguesa" },
+        { "code": "2", "label": "Alemã" },
+        { "code": "6", "label": "Espanhola" },
+        { "code": "11", "label": "Italiana" },
+        { "code": "13", "label": "Holandesa" },
+        { "code": "14", "label": "Inglesa" },
+        { "code": "17", "label": "Lituana" },
+        { "code": "21", "label": "Angolana" },
+        { "code": "22", "label": "Cabo-verdiana" },
+        { "code": "24", "label": "Guineense" },
+        { "code": "25", "label": "Moçambicana" },
+        { "code": "26", "label": "São-tomense" },
+        { "code": "32", "label": "Turca" },
+        { "code": "41", "label": "Brasileira" },
+        { "code": "62", "label": "Romena" },
+        { "code": "100", "label": "Moldava" },
+        { "code": "101", "label": "Mexicana" },
+        { "code": "103", "label": "Ucraniana" },
+        { "code": "105", "label": "Russa" },
+        { "code": "108", "label": "Cubana" },
+        { "code": "109", "label": "Colombiana" }
+      ]
+    },
+    "mothers_qualification": {
+      "text": "Nível de escolaridade da mãe do estudante. Código categórico.",
+      "options": [
+        { "code": "1", "label": "Ensino secundário — 12º ano ou equivalente" },
+        { "code": "2", "label": "Ensino superior — bacharelado" },
+        { "code": "3", "label": "Ensino superior — licenciatura" },
+        { "code": "4", "label": "Ensino superior — mestrado" },
+        { "code": "5", "label": "Ensino superior — doutorado" },
+        { "code": "6", "label": "Frequência do ensino superior" },
+        { "code": "9", "label": "12º ano não concluído" },
+        { "code": "10", "label": "11º ano não concluído" },
+        { "code": "11", "label": "7º ano (sistema antigo)" },
+        { "code": "12", "label": "Outro — 11º ano de escolaridade" },
+        { "code": "14", "label": "10º ano de escolaridade" },
+        { "code": "18", "label": "Curso geral de comércio" },
+        { "code": "19", "label": "Ensino básico, 3º ciclo (9º/10º/11º ano) ou equivalente" },
+        { "code": "22", "label": "Curso técnico-profissional" },
+        { "code": "26", "label": "7º ano de escolaridade" },
+        { "code": "27", "label": "2º ciclo do curso geral do ensino secundário" },
+        { "code": "29", "label": "9º ano não concluído" },
+        { "code": "30", "label": "8º ano de escolaridade" },
+        { "code": "34", "label": "Desconhecido" },
+        { "code": "35", "label": "Não sabe ler nem escrever" },
+        { "code": "36", "label": "Sabe ler sem ter o 4º ano completo" },
+        { "code": "37", "label": "Ensino básico, 1º ciclo (4º/5º ano) ou equivalente" },
+        { "code": "38", "label": "Ensino básico, 2º ciclo (6º/7º/8º ano) ou equivalente" },
+        { "code": "39", "label": "Curso de especialização tecnológica" },
+        { "code": "40", "label": "Ensino superior — licenciatura (1º ciclo)" },
+        { "code": "41", "label": "Curso superior especializado" },
+        { "code": "42", "label": "Curso técnico superior profissional" },
+        { "code": "43", "label": "Ensino superior — mestrado (2º ciclo)" },
+        { "code": "44", "label": "Ensino superior — doutorado (3º ciclo)" }
+      ]
+    },
+    "fathers_qualification": {
+      "text": "Nível de escolaridade do pai do estudante. Código categórico.",
+      "options": [
+        { "code": "1", "label": "Ensino secundário — 12º ano ou equivalente" },
+        { "code": "2", "label": "Ensino superior — bacharelado" },
+        { "code": "3", "label": "Ensino superior — licenciatura" },
+        { "code": "4", "label": "Ensino superior — mestrado" },
+        { "code": "5", "label": "Ensino superior — doutorado" },
+        { "code": "6", "label": "Frequência do ensino superior" },
+        { "code": "9", "label": "12º ano não concluído" },
+        { "code": "10", "label": "11º ano não concluído" },
+        { "code": "11", "label": "7º ano (sistema antigo)" },
+        { "code": "12", "label": "Outro — 11º ano de escolaridade" },
+        { "code": "13", "label": "2º ano do curso complementar do secundário" },
+        { "code": "14", "label": "10º ano de escolaridade" },
+        { "code": "18", "label": "Curso geral de comércio" },
+        { "code": "19", "label": "Ensino básico, 3º ciclo (9º/10º/11º ano) ou equivalente" },
+        { "code": "20", "label": "Curso complementar do ensino secundário" },
+        { "code": "22", "label": "Curso técnico-profissional" },
+        { "code": "25", "label": "Curso complementar do ensino secundário — não concluído" },
+        { "code": "26", "label": "7º ano de escolaridade" },
+        { "code": "27", "label": "2º ciclo do curso geral do ensino secundário" },
+        { "code": "29", "label": "9º ano não concluído" },
+        { "code": "30", "label": "8º ano de escolaridade" },
+        { "code": "31", "label": "Curso geral de administração e comércio" },
+        { "code": "33", "label": "Curso complementar de contabilidade e administração" },
+        { "code": "34", "label": "Desconhecido" },
+        { "code": "35", "label": "Não sabe ler nem escrever" },
+        { "code": "36", "label": "Sabe ler sem ter o 4º ano completo" },
+        { "code": "37", "label": "Ensino básico, 1º ciclo (4º/5º ano) ou equivalente" },
+        { "code": "38", "label": "Ensino básico, 2º ciclo (6º/7º/8º ano) ou equivalente" },
+        { "code": "39", "label": "Curso de especialização tecnológica" },
+        { "code": "40", "label": "Ensino superior — licenciatura (1º ciclo)" },
+        { "code": "41", "label": "Curso superior especializado" },
+        { "code": "42", "label": "Curso técnico superior profissional" },
+        { "code": "43", "label": "Ensino superior — mestrado (2º ciclo)" },
+        { "code": "44", "label": "Ensino superior — doutorado (3º ciclo)" }
+      ]
+    },
+    "mothers_occupation": {
+      "text": "Ocupação profissional da mãe do estudante, classificada por categoria ocupacional. Código categórico.",
+      "options": [
+        { "code": "0", "label": "Estudante" },
+        { "code": "1", "label": "Representante do poder legislativo/executivo, dirigente, diretora ou gestora executiva" },
+        { "code": "2", "label": "Especialista em atividades intelectuais e científicas" },
+        { "code": "3", "label": "Técnica e profissão de nível intermédio" },
+        { "code": "4", "label": "Pessoal administrativo" },
+        { "code": "5", "label": "Trabalhadora dos serviços pessoais, segurança e vendedora" },
+        { "code": "6", "label": "Agricultora e trabalhadora qualificada da agricultura, pesca e floresta" },
+        { "code": "7", "label": "Trabalhadora qualificada da indústria, construção e artesanato" },
+        { "code": "8", "label": "Operadora de instalações e máquinas e trabalhadora da montagem" },
+        { "code": "9", "label": "Trabalhadora não qualificada" },
+        { "code": "10", "label": "Profissão das Forças Armadas" },
+        { "code": "90", "label": "Outra situação" },
+        { "code": "99", "label": "Em branco (não informado)" },
+        { "code": "122", "label": "Profissional de saúde" },
+        { "code": "123", "label": "Professora" },
+        { "code": "125", "label": "Especialista em tecnologias de informação e comunicação (TIC)" },
+        { "code": "131", "label": "Técnica de nível intermédio de ciências e engenharia" },
+        { "code": "132", "label": "Técnica de nível intermédio da saúde" },
+        { "code": "134", "label": "Técnica de nível intermédio de serviços jurídicos, sociais, desportivos, culturais e similares" },
+        { "code": "141", "label": "Escriturária, secretária em geral e operadora de processamento de dados" },
+        { "code": "143", "label": "Operadora de dados, contabilidade, estatística, serviços financeiros e registos" },
+        { "code": "144", "label": "Outro pessoal de apoio administrativo" },
+        { "code": "151", "label": "Trabalhadora dos serviços pessoais" },
+        { "code": "152", "label": "Vendedora" },
+        { "code": "153", "label": "Trabalhadora dos cuidados pessoais e similares" },
+        { "code": "171", "label": "Trabalhadora qualificada da construção, exceto eletricistas" },
+        { "code": "173", "label": "Trabalhadora qualificada de artes gráficas, instrumentos de precisão, joalheria e artesanato" },
+        { "code": "175", "label": "Trabalhadora da indústria alimentar, madeira, vestuário e outras indústrias e artesanato" },
+        { "code": "191", "label": "Trabalhadora de limpeza" },
+        { "code": "192", "label": "Trabalhadora não qualificada da agricultura, produção animal, pesca e floresta" },
+        { "code": "193", "label": "Trabalhadora não qualificada da indústria extrativa, construção, indústria transformadora e transportes" },
+        { "code": "194", "label": "Auxiliar de preparação de refeições" }
+      ]
+    },
+    "fathers_occupation": {
+      "text": "Ocupação profissional do pai do estudante, classificada por categoria ocupacional. Código categórico.",
+      "options": [
+        { "code": "0", "label": "Estudante" },
+        { "code": "1", "label": "Representante do poder legislativo/executivo, dirigente, diretor ou gestor executivo" },
+        { "code": "2", "label": "Especialista em atividades intelectuais e científicas" },
+        { "code": "3", "label": "Técnico e profissão de nível intermédio" },
+        { "code": "4", "label": "Pessoal administrativo" },
+        { "code": "5", "label": "Trabalhador dos serviços pessoais, segurança e vendedor" },
+        { "code": "6", "label": "Agricultor e trabalhador qualificado da agricultura, pesca e floresta" },
+        { "code": "7", "label": "Trabalhador qualificado da indústria, construção e artesanato" },
+        { "code": "8", "label": "Operador de instalações e máquinas e trabalhador da montagem" },
+        { "code": "9", "label": "Trabalhador não qualificado" },
+        { "code": "10", "label": "Profissão das Forças Armadas" },
+        { "code": "90", "label": "Outra situação" },
+        { "code": "99", "label": "Em branco (não informado)" },
+        { "code": "101", "label": "Oficial das Forças Armadas" },
+        { "code": "102", "label": "Sargento das Forças Armadas" },
+        { "code": "103", "label": "Outro pessoal das Forças Armadas" },
+        { "code": "112", "label": "Diretor de serviços administrativos e comerciais" },
+        { "code": "114", "label": "Diretor de hotelaria, restauração, comércio e outros serviços" },
+        { "code": "121", "label": "Especialista em ciências físicas, matemática, engenharia e técnicas afins" },
+        { "code": "122", "label": "Profissional de saúde" },
+        { "code": "123", "label": "Professor" },
+        { "code": "124", "label": "Especialista em finanças, contabilidade, organização administrativa e relações públicas e comerciais" },
+        { "code": "131", "label": "Técnico de nível intermédio de ciências e engenharia" },
+        { "code": "132", "label": "Técnico de nível intermédio da saúde" },
+        { "code": "134", "label": "Técnico de nível intermédio de serviços jurídicos, sociais, desportivos, culturais e similares" },
+        { "code": "135", "label": "Técnico de tecnologias de informação e comunicação" },
+        { "code": "141", "label": "Escriturário, secretário em geral e operador de processamento de dados" },
+        { "code": "143", "label": "Operador de dados, contabilidade, estatística, serviços financeiros e registos" },
+        { "code": "144", "label": "Outro pessoal de apoio administrativo" },
+        { "code": "151", "label": "Trabalhador dos serviços pessoais" },
+        { "code": "152", "label": "Vendedor" },
+        { "code": "153", "label": "Trabalhador dos cuidados pessoais e similares" },
+        { "code": "154", "label": "Pessoal dos serviços de proteção e segurança" },
+        { "code": "161", "label": "Agricultor orientado para o mercado e trabalhador qualificado da produção agrícola e animal" },
+        { "code": "163", "label": "Agricultor, pecuarista, pescador, caçador e coletor de subsistência" },
+        { "code": "171", "label": "Trabalhador qualificado da construção, exceto eletricistas" },
+        { "code": "172", "label": "Trabalhador qualificado da metalurgia e metalomecânica" },
+        { "code": "174", "label": "Trabalhador qualificado de eletricidade e eletrónica" },
+        { "code": "175", "label": "Trabalhador da indústria alimentar, madeira, vestuário e outras indústrias e artesanato" },
+        { "code": "181", "label": "Operador de instalações fixas e máquinas" },
+        { "code": "182", "label": "Trabalhador da montagem" },
+        { "code": "183", "label": "Condutor de veículos e operador de equipamentos móveis" },
+        { "code": "192", "label": "Trabalhador não qualificado da agricultura, produção animal, pesca e floresta" },
+        { "code": "193", "label": "Trabalhador não qualificado da indústria extrativa, construção, indústria transformadora e transportes" },
+        { "code": "194", "label": "Auxiliar de preparação de refeições" },
+        { "code": "195", "label": "Vendedor ambulante (exceto alimentos) e prestador de serviços de rua" }
+      ]
+    },
+    "admission_grade": {
+      "text": "Nota final de admissão/candidatura ao curso atual, responsável pela ocupação da vaga pelo estudante. Intervalo teórico de 0 a 200, na mesma escala da nota de qualificação anterior."
+    },
+    "displaced": {
+      "text": "Indica se o estudante se deslocou de sua cidade/região de origem para cursar a formação atual. Campo binário.",
+      "options": [
+        { "code": "1", "label": "Sim, houve deslocamento" },
+        { "code": "0", "label": "Não, permanece na cidade de origem" }
+      ]
+    },
+    "educational_special_needs": {
+      "text": "Indica se há registro de necessidade educacional especial associada ao estudante. Campo binário.",
+      "options": [
+        { "code": "1", "label": "Sim" },
+        { "code": "0", "label": "Não" }
+      ]
+    },
+    "debtor": {
+      "text": "Indica se o estudante possui pendência financeira (dívida) registrada junto à instituição de ensino. Campo binário.",
+      "options": [
+        { "code": "1", "label": "Sim, inadimplente" },
+        { "code": "0", "label": "Não, sem pendências" }
+      ]
+    },
+    "tuition_fees_up_to_date": {
+      "text": "Indica se os pagamentos das mensalidades do estudante estão regularizados. Campo binário.",
+      "options": [
+        { "code": "1", "label": "Em dia" },
+        { "code": "0", "label": "Em atraso" }
+      ],
+      "note": "Atributo de peso relevante no modelo preditivo de risco de evasão."
+    },
+    "gender": {
+      "text": "Gênero do estudante, conforme registrado na base de dados de origem. Campo binário.",
+      "options": [
+        { "code": "1", "label": "Masculino" },
+        { "code": "0", "label": "Feminino" }
+      ]
+    },
+    "scholarship_holder": {
+      "text": "Indica se o estudante é beneficiário de bolsa de estudos. Campo binário.",
+      "options": [
+        { "code": "1", "label": "Sim, bolsista" },
+        { "code": "0", "label": "Não bolsista" }
+      ]
+    },
+    "age_at_enrollment": {
+      "text": "Idade do estudante, em anos completos, na data de matrícula no curso."
+    },
+    "international": {
+      "text": "Indica se o estudante possui nacionalidade estrangeira em relação ao país da instituição de ensino. Campo binário.",
+      "options": [
+        { "code": "1", "label": "Sim, estudante internacional" },
+        { "code": "0", "label": "Não, nacional do país da instituição" }
+      ]
+    },
+    "curricular_units_1st_sem_credited": {
+      "text": "Número de Unidades Curriculares (UCs) do 1º semestre creditadas por aproveitamento de estudos — disciplinas dispensadas por equivalência a formação anterior, sem terem sido cursadas na instituição atual.",
+      "note": "Valores mais altos indicam maior volume de aproveitamento de créditos."
+    },
+    "curricular_units_1st_sem_enrolled": {
+      "text": "Número de Unidades Curriculares (UCs) em que o estudante efetuou matrícula no 1º semestre."
+    },
+    "curricular_units_1st_sem_evaluations": {
+      "text": "Número de avaliações (provas/trabalhos) efetivamente realizadas pelo estudante no 1º semestre.",
+      "note": "Pode exceder o número de UCs matriculadas, pois cada disciplina pode ter mais de um instrumento de avaliação."
+    },
+    "curricular_units_1st_sem_approved": {
+      "text": "Número de Unidades Curriculares (UCs) em que o estudante obteve aprovação no 1º semestre.",
+      "note": "Indicador de desempenho acadêmico de maior relevância: quanto maior o valor, melhor o aproveitamento registrado no período."
+    },
+    "curricular_units_1st_sem_grade": {
+      "text": "Nota média do estudante nas UCs avaliadas no 1º semestre, na escala portuguesa de 0 a 20.",
+      "note": "O valor 0 costuma indicar ausência de UCs avaliadas no período."
+    },
+    "curricular_units_1st_sem_without_evaluations": {
+      "text": "Número de UCs do 1º semestre em que o estudante permaneceu matriculado sem realizar qualquer avaliação.",
+      "note": "Valores elevados constituem indício de afastamento precoce das atividades acadêmicas no período."
+    },
+    "curricular_units_2nd_sem_credited": {
+      "text": "Número de Unidades Curriculares (UCs) do 2º semestre creditadas por aproveitamento de estudos — disciplinas dispensadas por equivalência a formação anterior, sem terem sido cursadas na instituição atual.",
+      "note": "Valores mais altos indicam maior volume de aproveitamento de créditos."
+    },
+    "curricular_units_2nd_sem_enrolled": {
+      "text": "Número de Unidades Curriculares (UCs) em que o estudante efetuou matrícula no 2º semestre."
+    },
+    "curricular_units_2nd_sem_evaluations": {
+      "text": "Número de avaliações (provas/trabalhos) efetivamente realizadas pelo estudante no 2º semestre.",
+      "note": "Pode exceder o número de UCs matriculadas, pois cada disciplina pode ter mais de um instrumento de avaliação."
+    },
+    "curricular_units_2nd_sem_approved": {
+      "text": "Número de Unidades Curriculares (UCs) em que o estudante obteve aprovação no 2º semestre.",
+      "note": "Atributo de maior peso no modelo preditivo utilizado pelo sistema: valores baixos tendem a elevar o risco de evasão identificado."
+    },
+    "curricular_units_2nd_sem_grade": {
+      "text": "Nota média do estudante nas UCs avaliadas no 2º semestre, na escala portuguesa de 0 a 20.",
+      "note": "O valor 0 costuma indicar ausência de UCs avaliadas no período."
+    },
+    "curricular_units_2nd_sem_without_evaluations": {
+      "text": "Número de UCs do 2º semestre em que o estudante permaneceu matriculado sem realizar qualquer avaliação.",
+      "note": "Valores elevados constituem indício de afastamento precoce das atividades acadêmicas no período."
+    },
+    "unemployment_rate": {
+      "text": "Taxa de desemprego nacional (%) referente ao período de ingresso do estudante.",
+      "note": "Indicador macroeconômico do contexto do período, não uma característica individual do estudante."
+    },
+    "inflation_rate": {
+      "text": "Taxa de inflação nacional (%) referente ao período de ingresso do estudante.",
+      "note": "Indicador macroeconômico do contexto do período; admite valores negativos em cenários de deflação."
+    },
+    "gdp": {
+      "text": "Variação do Produto Interno Bruto (PIB) nacional (%) referente ao período de ingresso do estudante.",
+      "note": "Indicador macroeconômico do contexto do período; admite valores negativos em cenários de retração econômica."
+    }
   },
   "analysis": {
     "title": "Análise",

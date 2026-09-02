@@ -9,7 +9,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "cypress:open": "cypress open",
-    "test:e2e": "cypress run"
+    "test": "node scripts/run-e2e.mjs",
+    "test:e2e": "cypress run",
+    "test:stress": "node scripts/run-e2e.mjs --spec cypress/e2e/stress.cy.ts --env stress=true"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -17,12 +19,16 @@
     "react-router-dom": "^7.18.2"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.6.0",
+    "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "latest",
     "cypress": "^15.0.0",
+    "tree-kill": "^1.2.2",
     "typescript": "latest",
-    "vite": "latest"
+    "vite": "latest",
+    "wait-on": "^9.0.4"
   },
   "allowScripts": {
     "cypress@15.21.0": true

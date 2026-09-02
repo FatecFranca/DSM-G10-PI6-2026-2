@@ -56,7 +56,7 @@ problema de evasão e sucesso acadêmico tratado pelo dataset.
 ```text
         ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
         │ frontend-Project│   │  mobile-Project │   │    Desktop      │
-        │   Web (React)   │   │  Flutter (futuro)│   │    (futuro)     │
+        │   Web (React)   │   │     Flutter     │   │                 │ 
         └────────┬────────┘   └────────┬────────┘   └────────┬────────┘
                  │                     │                     │
                  └──────────── HTTP / JSON ──────────────────┘

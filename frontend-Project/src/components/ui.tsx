@@ -1,6 +1,6 @@
-import { useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 
-import { useI18n } from '../state/I18nContext';
+import { useI18n, type FeatureInfo } from '../state/I18nContext';
 import { useTheme } from '../state/ThemeContext';
 import type { AttentionLevel, Classification, FollowUpStatus, Priority } from '../types/api';
 
@@ -111,7 +111,7 @@ interface FieldProps {
   required?: boolean;
   hint?: ReactNode;
   error?: string;
-  info?: string;
+  info?: FeatureInfo | string;
   children: ReactNode;
 }
 
@@ -121,7 +121,7 @@ export function Field({ label, htmlFor, required, hint, error, info, children }:
       <label className="field__label" htmlFor={htmlFor}>
         {label}
         {required && <span className="field__required">*</span>}
-        {info && <InfoTooltip text={info} />}
+        {info && <InfoTooltip content={info} />}
       </label>
       {children}
       {error ? (
@@ -153,14 +153,75 @@ function InfoIcon() {
   );
 }
 
-export function InfoTooltip({ text }: { text: string }) {
+function flattenFeatureInfo(content: FeatureInfo): string {
+  const parts = [content.text, ...(content.options ?? []).map((option) => `${option.code} = ${option.label}`)];
+  if (content.note) parts.push(content.note);
+  return parts.join('. ');
+}
+
+export function InfoTooltip({ content }: { content: FeatureInfo | string }) {
+  const { t } = useI18n();
+  const info: FeatureInfo = typeof content === 'string' ? { text: content } : content;
+  const label = typeof content === 'string' ? content : flattenFeatureInfo(content);
+  const optionCount = info.options?.length ?? 0;
+  const sizeClass = optionCount > 16 ? ' info-tooltip__bubble--xwide' : optionCount > 6 ? ' info-tooltip__bubble--wide' : '';
+
+  const triggerRef = useRef<HTMLSpanElement>(null);
+  const bubbleRef = useRef<HTMLSpanElement>(null);
+
+  function reposition() {
+    const trigger = triggerRef.current;
+    const bubble = bubbleRef.current;
+    if (!trigger || !bubble) return;
+
+    const margin = 12;
+    const boundary = trigger.closest('.content');
+    const boundaryRect = boundary?.getBoundingClientRect();
+    const minX = (boundaryRect?.left ?? 0) + margin;
+    const maxX = (boundaryRect?.right ?? window.innerWidth) - margin;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const iconCenterX = triggerRect.left + triggerRect.width / 2;
+    const bubbleWidth = bubble.offsetWidth;
+    const leftEdge = iconCenterX - bubbleWidth / 2;
+    const rightEdge = iconCenterX + bubbleWidth / 2;
+
+    let shift = 0;
+    if (leftEdge < minX) shift = minX - leftEdge;
+    else if (rightEdge > maxX) shift = maxX - rightEdge;
+
+    bubble.style.setProperty('--tt-shift', `${shift}px`);
+  }
+
   return (
-    <span className="info-tooltip" tabIndex={0} role="button" aria-label={text}>
+    <span
+      className="info-tooltip"
+      tabIndex={0}
+      role="button"
+      aria-label={label}
+      ref={triggerRef}
+      onMouseEnter={reposition}
+      onFocus={reposition}
+    >
       <span className="info-tooltip__icon" aria-hidden="true">
         <InfoIcon />
       </span>
-      <span className="info-tooltip__bubble" role="tooltip">
-        {text}
+      <span className={`info-tooltip__bubble${sizeClass}`} role="tooltip" ref={bubbleRef}>
+        <span className="info-tooltip__text">{info.text}</span>
+        {optionCount > 0 && (
+          <span className="info-tooltip__options">
+            {info.options!.map((option) => (
+              <span className="info-tooltip__option" key={option.code}>
+                <span className="info-tooltip__code">{option.code}</span>
+                <span>{option.label}</span>
+              </span>
+            ))}
+          </span>
+        )}
+        {optionCount > 0 && info.exhaustive === false && (
+          <span className="info-tooltip__note">{t('students.featureExamplesNote')}</span>
+        )}
+        {info.note && <span className="info-tooltip__note">{info.note}</span>}
       </span>
     </span>
   );

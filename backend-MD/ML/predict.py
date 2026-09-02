@@ -101,9 +101,18 @@ def load_artifacts() -> tuple[object, object, dict]:
                 f"Artefato de modelo ausente: {path.name}. "
                 "Execute o pipeline (ML/prepare_data.py e ML/train_model.py) antes de classificar.",
             )
-    return joblib.load(cfg.MODEL_FILE), joblib.load(cfg.SCALER_FILE), cfg.read_json(
-        cfg.MODEL_METADATA_FILE
-    )
+    try:
+        model = joblib.load(cfg.MODEL_FILE)
+        scaler = joblib.load(cfg.SCALER_FILE)
+        metadata = cfg.read_json(cfg.MODEL_METADATA_FILE)
+    except Exception as error:
+        fail(
+            "MODEL_ARTIFACT_CORRUPTED",
+            "Falha ao carregar os artefatos do modelo — arquivo corrompido ou incompatível "
+            f"com a versão instalada das bibliotecas: {error}. "
+            "Execute ML/train_model.py novamente para regenerar os artefatos.",
+        )
+    return model, scaler, metadata
 
 
 def main() -> None:

@@ -39,22 +39,63 @@ consulta). Entre com um dos usuários criados por `npm run seed` no `backend-Pro
 ## Testes end-to-end (Cypress)
 
 ```bash
-npm run cypress:open     # modo interativo
-npm run test:e2e         # modo headless (CI)
+npm run test              # sobe o dev server sozinho, roda todos os fluxos e encerra
+npm run cypress:open      # modo interativo
+npm run test:e2e          # modo headless, assume que o dev server já está no ar
+npm run test:stress       # geração em massa de dados aleatórios (opt-in, ver abaixo)
 ```
 
-Requer os três serviços no ar (`backend-MD`, `backend-Project` com `npm run seed` e
-`npm run seed:students` executados, e `frontend-Project` em `npm run dev`) — os testes
-rodam contra a aplicação real, não contra mocks.
+`npm run test` usa `scripts/run-e2e.mjs` para subir o `vite dev` sozinho, esperar
+`http://localhost:5173` responder (via `wait-on`) e depois derrubar o servidor pelo PID que
+ele mesmo abriu (via `tree-kill`) ao final — só isso é automático. Optamos por esse script
+próprio em vez do pacote `start-server-and-test` porque ele depende de `ps-tree`, que no
+Windows usa `wmic.exe` para descobrir o processo do servidor — e o `wmic` foi removido das
+versões recentes do Windows 11, quebrando a limpeza ao final do teste (o teste em si passa,
+só a etapa de encerrar o servidor falha). O `backend-Project` (com `npm run seed`
+executado) e o `backend-MD` **precisam já estar no
+ar** antes de rodar qualquer um destes comandos; os testes batem na aplicação real, nunca
+em mocks.
 
 - `cypress/e2e/login.cy.ts` — credenciais inválidas, login válido, mostrar/ocultar senha,
   alternância de tema.
 - `cypress/e2e/dashboard.cy.ts` — cabeçalho do painel, navegação pela sidebar, logout.
-- `cypress/e2e/students.cy.ts` — listagem, busca sem resultado, abertura de detalhe.
+- `cypress/e2e/students.cy.ts` — cadastro de um novo estudante (dados aleatórios) pela
+  tela, listagem, busca sem resultado, abertura de detalhe.
+- `cypress/e2e/users.cy.ts` — administrador cria uma nova conta de usuário (dados
+  aleatórios) pela tela de Administração.
+- `cypress/e2e/institutions.cy.ts` — administrador cria uma nova instituição (dados
+  aleatórios) pela tela de Administração.
+- `cypress/e2e/followups.cy.ts` — abre um acompanhamento (dados aleatórios) a partir do
+  detalhe de um estudante.
 - `cypress/e2e/analysis.cy.ts` — simulação de classificação de ponta a ponta.
+- `cypress/e2e/stress.cy.ts` — **desativado por padrão** (`describe.skip`); veja a seção
+  seguinte.
 
 `cypress/support/commands.ts` expõe `cy.loginByApi()` (autentica direto via API, sem
-passar pela tela) e `cy.visitAuthenticated(path)` (injeta o token antes da SPA montar).
+passar pela tela), `cy.visitAuthenticated(path)` (injeta o token antes da SPA montar) e um
+conjunto de comandos `cy.apiCreate*`/`cy.apiEnsure*` que criam instituição, usuário,
+estudante (com os 36 atributos aleatórios dentro dos limites do contrato do modelo) e
+rodam uma análise, direto pela API — usados tanto para preparar cenário (ex.: garantir que
+existe uma instituição antes de testar o cadastro de estudante) quanto pelo
+`stress.cy.ts`. Os valores aleatórios em si vêm de `cypress/support/factories.ts`
+(`@faker-js/faker`, localizado em pt-BR).
+
+### Geração de massa de dados (stress test)
+
+`stress.cy.ts` não roda dentro de `npm run test` — ele criaria dezenas de registros a cada
+execução normal, o que não é o que se quer na validação do dia a dia. Para gerar volume de
+propósito:
+
+```bash
+npm run test:stress                                   # ~20 estudantes (padrão)
+npx cypress run --spec cypress/e2e/stress.cy.ts --env stress=true,stressCount=100
+```
+
+Isso cria estudantes com os 36 atributos sorteados dentro da faixa aceita pelo modelo
+(não apenas a média), roda uma análise real para cada um (bate no `backend-MD`), e cria
+instituições, usuários e acompanhamentos proporcionalmente — útil para popular um
+ambiente de desenvolvimento/homologação com uma base realista antes de testar
+performance, paginação ou os gráficos do painel com volume de verdade.
 
 ---
 

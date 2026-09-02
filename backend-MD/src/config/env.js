@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -50,6 +51,7 @@ export const env = {
   ML_DIR: path.join(PROJECT_ROOT, 'ML'),
   ML_TIMEOUT_MS: toInt(process.env.ML_TIMEOUT_MS, 30000),
   ML_MAX_BATCH_SIZE: toInt(process.env.ML_MAX_BATCH_SIZE, 500),
+  ML_MAX_CONCURRENCY: toInt(process.env.ML_MAX_CONCURRENCY, Math.max(2, os.cpus().length - 1)),
 };
 
 export function assertEnv() {
