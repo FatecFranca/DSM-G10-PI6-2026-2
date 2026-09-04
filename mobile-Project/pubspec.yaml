@@ -1,0 +1,50 @@
+name: pae_mobile
+description: "Aplicativo Flutter da Plataforma de Acompanhamento Educacional (PI 6 - Fatec Franca)"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Traducao dos widgets do proprio Flutter (seletor de data, acessibilidade)
+  # para pt-BR, en-US e es-ES.
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Gerenciamento de estado (decisao registrada na secao 4 do .IA/CONTEXT.md).
+  provider: ^6.1.5+1
+
+  # Navegacao declarativa; as rotas espelham as do frontend-Project.
+  go_router: ^17.5.0
+
+  # Cliente HTTP: unica forma de acesso a dados, sempre via backend-Project.
+  http: ^1.6.0
+
+  # Persistencia local nao sensivel (tema e idioma).
+  shared_preferences: ^2.5.5
+
+  # Persistencia local do token de sessao (JWT) - nunca em SharedPreferences.
+  flutter_secure_storage: ^9.2.4
+
+  # Formatacao de numero, percentual e data por locale (equivalente ao Intl da Web).
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    # Copias fieis de frontend-Project/src/locales - mesmas chaves, mesmos textos.
+    - assets/locales/

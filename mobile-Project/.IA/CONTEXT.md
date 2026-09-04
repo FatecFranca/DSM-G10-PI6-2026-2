@@ -13,10 +13,17 @@
 
 **Nome:** Predict Students' Dropout and Academic Success Classification  
 **Componente:** `mobile-Project`  
-**Tecnologia planejada:** Flutter  
-**Status:** Desenvolvimento futuro.
+**Tecnologia:** Flutter 3.41.5 / Dart 3.11.3  
+**Status:** Implementado.
 
-Este projeto será a aplicação Mobile do PI do 6º semestre e representa a continuidade direta do requisito Mobile existente no PI do 5º semestre.
+Este projeto é a aplicação Mobile do PI do 6º semestre e representa a continuidade direta
+do requisito Mobile existente no PI do 5º semestre.
+
+O app cobre as mesmas áreas funcionais da Web: acesso, painel, estudantes (listagem,
+cadastro, detalhe, análise individual e em lote), análise (simulação e histórico),
+mineração de dados (perfis e processo do modelo), acompanhamento e administração de
+usuários e instituições. Ver `README.md` para telas, decisões de adaptação ao celular e
+como executar.
 
 ---
 
@@ -67,35 +74,87 @@ O aplicativo nunca deve conectar diretamente ao MongoDB.
 
 ## 4. Tecnologia
 
-### Framework
+### Framework e linguagem
 
-- Flutter
+- Flutter `3.41.5` (canal stable)
+- Dart `3.11.3`
 
-### Linguagem
+`Decisão confirmada` (registrada em 02/09/2026, na criação do projeto): estas são as
+versões usadas para gerar e validar o aplicativo. `flutter analyze` roda sem nenhum
+apontamento e a suíte de testes de unidade passa nessas versões.
 
-- Dart
-
-A versão do Flutter/Dart deve ser definida no momento da criação do projeto e registrada neste documento quando estabelecida.
+O identificador do aplicativo é `academico.pi6.pae_mobile` — deliberadamente neutro:
+a plataforma **não** é operada pelo CMDCAF nem por nenhum órgão público, então o
+identificador não deve sugerir domínio institucional que o projeto não tem.
 
 ### Gerenciamento de estado
 
-`Decisão em aberto — bloqueante para começar a estruturar telas com mais de um widget dependente de estado compartilhado.`
+`Decisão confirmada` (autorizada pelo responsável do projeto em 02/09/2026, encerrando a
+pendência bloqueante): **Provider** (`provider`), exatamente a opção que estava sugerida
+para avaliação nesta seção.
 
-Ainda não foi escolhida a abordagem de gerenciamento de estado (ex.: Provider, Riverpod, Bloc/Cubit, GetX). Sem essa definição, uma IA implementando o app pode escolher uma abordagem incompatível com o resto do time ou trocar de padrão no meio do desenvolvimento.
+Motivo: é a abordagem oficialmente recomendada pelo time do Flutter para apps de porte
+pequeno/médio, com curva de aprendizado baixa — adequada ao escopo de um PI acadêmico e
+ao tamanho deste app.
 
-Sugestão para avaliação (não é decisão tomada): **Provider** é uma opção simples e oficialmente recomendada pelo próprio time do Flutter para apps de porte pequeno/médio como este, com curva de aprendizado baixa — adequada ao escopo de um PI acadêmico. Mas isso precisa ser confirmado pelo responsável do projeto antes de qualquer IA usar essa lib no código; não adotar automaticamente só por estar sugerida aqui.
+Como está aplicado:
+
+- `AuthState`, `I18nState` e `ThemeState` são `ChangeNotifier` expostos por
+  `MultiProvider` na raiz (`lib/main.dart`);
+- `Api` (o conjunto de serviços HTTP) é um `Provider` simples, sem notificação — não é
+  estado, é dependência;
+- estado local de tela (filtros, página atual, formulário em edição) fica no próprio
+  `State` do widget, sem subir para o Provider: só é compartilhado o que mais de uma
+  tela precisa enxergar.
+
+### Navegação
+
+`Decisão confirmada` (02/09/2026): **go_router**, com as **mesmas rotas** do
+`frontend-Project` (`/students/:id`, `/data-mining`, `/admin/users`, ...).
+
+Motivo: manter os caminhos iguais aos da Web permite falar de uma tela por endereço entre
+as duas plataformas. O redirecionamento por sessão fica em um lugar só
+(`lib/router.dart`), observando o `AuthState`: nenhuma tela navega para o login na mão.
+
+### Comunicação HTTP
+
+`Decisão confirmada` (02/09/2026): pacote **`http`**, encapsulado em `lib/core/api_client.dart`.
+
+Existe **uma única** URL de API configurada, apontando para o `backend-Project`
+(`AppConfig.apiBaseUrl`, definível por `--dart-define=API_BASE_URL=...`). Não há — e não
+deve haver — configuração apontando para o `backend-MD`: ver seção 7.
 
 ### Persistência local
 
-`Decisão em aberto — bloqueante para implementar sessão/cache local (seção 10).`
+`Decisão confirmada` (autorizada pelo responsável do projeto em 02/09/2026, encerrando a
+pendência bloqueante): **`shared_preferences` + `flutter_secure_storage`**, cada um no seu
+papel — exatamente a combinação que estava sugerida para avaliação nesta seção.
 
-Ainda não foi escolhida a biblioteca de persistência local. Opções relevantes para o escopo descrito na seção 10 (sessão, configurações, dados temporários, cache controlado):
+| Dado | Onde | Por quê |
+| --- | --- | --- |
+| Token de sessão (JWT) | `flutter_secure_storage` | Keystore no Android, Keychain no iOS. A seção 9 exige guardar credencial de forma segura, e `SharedPreferences` não é criptografado. |
+| Tema (claro/escuro) | `shared_preferences` | Configuração simples, não sensível. |
+| Idioma | `shared_preferences` | Configuração simples, não sensível. |
 
-- **SharedPreferences** (ou `shared_preferences`): adequado para dados simples de configuração e flags — **não deve ser usado para token de autenticação ou qualquer dado sensível**, pois não é criptografado.
-- **flutter_secure_storage**: para o que exige segurança (ex.: token/credencial de sessão — ver seção 9), já que `SharedPreferences` não é apropriado para isso.
-- **Hive** ou **sqflite**: se surgir necessidade de cache estruturado mais robusto (não parece necessário no escopo atual).
+`Hive`/`sqflite` **não** foram adotados: não existe, no escopo atual, cache estruturado
+que justifique um banco local — e a seção 10 é explícita em não usar armazenamento local
+como substituto do banco principal.
 
-Sugestão para avaliação (não é decisão tomada): `SharedPreferences` para configurações/flags simples **combinado com** `flutter_secure_storage` especificamente para token/credencial de sessão (seção 9 exige "armazenar credenciais de forma segura" — `SharedPreferences` sozinho não atende esse requisito). Confirmar com o responsável do projeto antes de implementar.
+> Nota de versão: `flutter_secure_storage` está fixado em `^9.2.4`, e não na linha 11.x.
+> A 11.x exige compilar contra o Android SDK 37; o projeto está alinhado ao SDK 36 em
+> `android/build.gradle.kts`, que é o que o Flutter 3.41.5 usa. Ao atualizar o Flutter,
+> os dois podem subir juntos.
+
+### Internacionalização
+
+`Decisão confirmada` (02/09/2026): os arquivos de tradução em `assets/locales/` são
+**cópias fiéis** de `frontend-Project/src/locales/` — mesmas chaves, mesmos textos, mesma
+interpolação `{{variavel}}`.
+
+Consequência a respeitar: quando um texto mudar na Web, a cópia precisa ser refeita. Não
+traduzir de novo do zero aqui, e não criar chave que só exista no Mobile sem que a Web
+também precise dela — isso faria as duas interfaces divergirem no vocabulário do domínio.
+A formatação de número, percentual e data usa `intl`, equivalente ao `Intl` do navegador.
 
 ---
 
@@ -280,22 +339,29 @@ Cada plataforma poderá possuir uma experiência específica.
 
 ---
 
-## 14. Regras para uma IA que desenvolver o Mobile
+## 14. Regras para uma IA que modificar o Mobile
 
-Quando o projeto Flutter for iniciado:
+O projeto já existe. Antes de alterar código:
 
-1. Inspecionar a versão do Flutter/Dart.
-2. Verificar se o gerenciamento de estado e a persistência local (seção 4) já foram decididos; se não, perguntar antes de escrever qualquer código de estado ou de armazenamento local.
-3. Registrar a arquitetura escolhida.
-4. Respeitar o padrão de gerenciamento de estado definido pelo projeto.
-5. Centralizar serviços HTTP.
-6. Criar modelos de dados alinhados aos contratos da API.
-7. Não duplicar regra de negócio.
-8. Não acessar o banco diretamente.
-9. Não colocar credenciais no código.
-10. Reutilizar padrões de autenticação existentes.
-11. Implementar tratamento consistente de loading, sucesso e erro.
-12. Manter compatibilidade com Web e Desktop por meio da API principal.
+1. Ler a estrutura atual (`lib/`) e o `README.md`.
+2. Respeitar as decisões já fechadas na seção 4: **Provider** para estado,
+   **go_router** para navegação, **`http`** para rede, **`shared_preferences` +
+   `flutter_secure_storage`** para persistência local. Não trocar nenhuma delas sem
+   justificativa técnica forte e sem perguntar antes.
+3. Centralizar serviços HTTP: nenhuma tela chama `http` diretamente — tudo passa por
+   `lib/core/api_client.dart` e `lib/services/api_services.dart`.
+4. Criar modelos de dados alinhados aos contratos da API (`lib/models/`), tolerantes a
+   campo ausente: um campo novo no Back-End não pode derrubar a tela.
+5. Não duplicar regra de negócio. Prioridade de acompanhamento, escopo por instituição e
+   validação de atributos são do `backend-Project`; aqui só se apresenta.
+6. Não acessar o banco diretamente e não chamar o `backend-MD` (ver seção 7).
+7. Não colocar credencial no código: tudo que vai para o APK é público.
+8. Reaproveitar os primitivos visuais de `lib/widgets/ui.dart` em vez de estilizar
+   widget solto — eles são a tradução dos tokens do `global.css` da Web.
+9. Manter os três idiomas em sincronia com `frontend-Project/src/locales/` (seção 4).
+10. Implementar tratamento consistente de carregando, sucesso e erro (`AsyncBuilder`).
+11. Manter compatibilidade com Web e Desktop por meio da API principal.
+12. Rodar `flutter analyze` e `flutter test` antes de dar por concluído.
 
 ---
 

@@ -1,4 +1,5 @@
 .claude/
+.idea/
 
 backend-MD/.env
 backend-MD/node_modules
@@ -21,3 +22,76 @@ frontend-Project/node_modules
 frontend-Project/.IA
 frontend-Project/dist
 frontend-Project/tsconfig.tsbuildinfo
+
+# --- mobile-Project (Flutter) -------------------------------------------------
+# Consolidado aqui: o `flutter create` gera um .gitignore por plataforma
+# (android/, ios/, windows/), mas este repositorio mantem um unico arquivo na
+# raiz. As regras abaixo sao as daqueles arquivos, com o prefixo do modulo.
+
+# Artefatos de build e cache de ferramenta
+mobile-Project/.dart_tool
+mobile-Project/.flutter-plugins
+mobile-Project/.flutter-plugins-dependencies
+mobile-Project/build
+mobile-Project/android/build
+mobile-Project/**/doc/api/
+
+# Arquivos de IDE
+mobile-Project/.idea
+mobile-Project/**/*.iml
+mobile-Project/**/*.suo
+mobile-Project/**/*.user
+mobile-Project/**/*.userosscache
+mobile-Project/**/*.sln.docstates
+
+# Android
+mobile-Project/android/.gradle
+mobile-Project/android/local.properties
+mobile-Project/android/captures
+mobile-Project/android/gradlew
+mobile-Project/android/gradlew.bat
+mobile-Project/android/**/gradle-wrapper.jar
+mobile-Project/android/**/GeneratedPluginRegistrant.java
+mobile-Project/android/**/.cxx
+mobile-Project/android/**/hs_err_pid*.log
+
+# Android — credenciais de assinatura. NUNCA versionar.
+mobile-Project/android/key.properties
+mobile-Project/**/*.keystore
+mobile-Project/**/*.jks
+
+# iOS
+mobile-Project/ios/**/Pods
+mobile-Project/ios/**/.symlinks
+mobile-Project/ios/**/DerivedData
+mobile-Project/ios/**/xcuserdata
+mobile-Project/ios/**/.generated
+mobile-Project/ios/**/dgph
+mobile-Project/ios/**/*sync
+mobile-Project/ios/Flutter/App.framework
+mobile-Project/ios/Flutter/Flutter.framework
+mobile-Project/ios/Flutter/Flutter.podspec
+mobile-Project/ios/Flutter/Generated.xcconfig
+mobile-Project/ios/Flutter/ephemeral
+mobile-Project/ios/Flutter/app.flx
+mobile-Project/ios/Flutter/app.zip
+mobile-Project/ios/Flutter/flutter_assets
+mobile-Project/ios/Flutter/flutter_export_environment.sh
+mobile-Project/ios/Flutter/.last_build_id
+mobile-Project/ios/ServiceDefinitions.json
+mobile-Project/ios/Runner/GeneratedPluginRegistrant.*
+mobile-Project/ios/**/*.mode1v3
+mobile-Project/ios/**/*.mode2v3
+mobile-Project/ios/**/*.moved-aside
+mobile-Project/ios/**/*.pbxuser
+mobile-Project/ios/**/*.perspectivev3
+# Excecoes as regras de iOS acima.
+!mobile-Project/ios/**/default.mode1v3
+!mobile-Project/ios/**/default.mode2v3
+!mobile-Project/ios/**/default.pbxuser
+!mobile-Project/ios/**/default.perspectivev3
+
+# Windows
+mobile-Project/windows/flutter/ephemeral
+mobile-Project/windows/x64
+mobile-Project/windows/x86
