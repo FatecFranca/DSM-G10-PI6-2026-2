@@ -49,7 +49,6 @@ router.get('/', async (req, res, next) => {
         reachable: mlService.reachable,
         status: mlService.status ?? null,
         classifierReady: mlService.classifierReady ?? false,
-        clusteringReady: mlService.clusteringReady ?? false,
         modelVersion: mlService.modelVersion ?? null,
       },
     });

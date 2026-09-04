@@ -2,7 +2,7 @@ import { useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, 
 
 import { useI18n, type FeatureInfo } from '../state/I18nContext';
 import { useTheme } from '../state/ThemeContext';
-import type { AttentionLevel, Classification, FollowUpStatus, Priority } from '../types/api';
+import type { Classification, FollowUpStatus, Priority } from '../types/api';
 
 interface CardProps {
   title?: ReactNode;
@@ -332,18 +332,6 @@ export function PriorityBadge({ value }: { value: Priority | null | undefined })
   const { t } = useI18n();
   if (!value) return <span className="badge badge--neutral">—</span>;
   return <span className={`badge ${PRIORITY_CLASS[value]}`}>{t(`priority.${value}`)}</span>;
-}
-
-const ATTENTION_CLASS: Record<AttentionLevel, string> = {
-  alta: 'badge--high',
-  média: 'badge--medium',
-  baixa: 'badge--low',
-};
-
-export function AttentionBadge({ value }: { value: AttentionLevel | null | undefined }) {
-  const { t } = useI18n();
-  if (!value) return null;
-  return <span className={`badge ${ATTENTION_CLASS[value] ?? 'badge--neutral'}`}>{t(`attention.${value}`)}</span>;
 }
 
 const STATUS_CLASS: Record<FollowUpStatus, string> = {

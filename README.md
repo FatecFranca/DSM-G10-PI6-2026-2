@@ -36,7 +36,7 @@ Como cada exigência é atendida nesta solução:
 | Multiplataforma — Mobile | Planejado (`mobile-Project`, Flutter) — evolução futura declarada desde a raiz do PI 5 |
 | Multiplataforma — Desktop | Planejado — evolução futura |
 | Controle de versionamento | Git/GitHub, conforme exigido pelo manual como portfólio |
-| Mineração de Dados (disciplina satélite) | Pipeline completo em `backend-MD/ML` — preparação, comparação de algoritmos, avaliação, aprendizado supervisionado e não supervisionado |
+| Mineração de Dados (disciplina satélite) | Pipeline completo em `backend-MD/ML` — preparação, comparação de treze algoritmos, seleção justificada e avaliação (classificação supervisionada) |
 
 **Problema real escolhido pelo grupo:** o manual permite que cada grupo escolha, em
 comum acordo, um problema alinhado a desafios reais da sociedade (seção 6 do manual).
@@ -127,7 +127,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"  
 ```bash
 cd backend-MD
 npm install    # cria .env (se faltar), sincroniza o banco, prepara o venv Python
-               # e treina o modelo + agrupamento — tudo automático e idempotente
+               # e treina o modelo — tudo automático e idempotente
 npm start      # :3003
 ```
 
@@ -192,14 +192,18 @@ painel, selecione os estudantes na lista e use **Analisar selecionados**.
 Dataset: 4.424 estudantes, 36 atributos, 3 classes desbalanceadas
 (`Graduate` 49,9% · `Dropout` 32,1% · `Enrolled` 17,9%).
 
-Nove algoritmos são comparados por validação cruzada (10 folds) e avaliados em treino e
-teste. A seleção usa F1 macro no teste como métrica principal — por causa do
-desbalanceamento — com desempate por menor distância treino-teste, para não escolher um
-modelo que decora o treino por uma vantagem de milésimos.
+Treze algoritmos são comparados por validação cruzada de 10 folds sobre o conjunto de
+desenvolvimento (80%); o teste (20%) fica intocado até a avaliação final. A seleção descarta
+quem memoriza o treino (distância treino-validação acima de 0,05) e depois ordena por
+`0,50 × F1 macro + 0,50 × revocação de Dropout` — a revocação de `Dropout` pesa porque
+deixar de sinalizar quem evade é o erro caro neste domínio.
 
-Análise complementar não supervisionada (KMeans, k escolhido por silhueta) encontrou um
-perfil com **82,5% de evasão histórica** concentrando 19% dos registros — o tipo de achado
-que a área de Mineração de Dados da interface expõe.
+**Tarefa de aprendizado: somente classificação.** `docs/dataset/BASE-ML.md` exige de uma a
+duas tarefas entre Classificação, Regressão, Regra de associação, Clustering e Recomendação
+— o projeto aplica uma. Um agrupamento por KMeans existiu até 03/09/2026 e foi removido:
+a base é rotulada e de classificação, e o agrupamento não se sustentava (silhueta 0,214,
+com 74,6% dos registros num único grupo). Histórico na seção 10 do
+[`backend-MD/.IA/CONTEXT.md`](backend-MD/.IA/CONTEXT.md).
 
 Detalhes de pipeline, reprodutibilidade e endpoints: [`backend-MD/README.md`](backend-MD/README.md).
 

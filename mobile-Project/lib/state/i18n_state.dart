@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Idiomas disponíveis — os mesmos três da Web.
 enum AppLocale {
   ptBR('pt-BR', 'pt_BR', 'Português (BR)', 'PT'),
   enUS('en-US', 'en_US', 'English (US)', 'EN'),
@@ -15,10 +14,8 @@ enum AppLocale {
 
   const AppLocale(this.code, this.intlCode, this.label, this.short);
 
-  /// Código usado no arquivo de tradução e na chave de armazenamento.
   final String code;
 
-  /// Código no formato que o pacote `intl` espera (`pt_BR`).
   final String intlCode;
 
   final String label;
@@ -34,7 +31,6 @@ enum AppLocale {
   }
 }
 
-/// Descrição de um atributo do modelo, exibida no ícone de ajuda do formulário.
 class FeatureInfo {
   const FeatureInfo({
     required this.text,
@@ -46,7 +42,6 @@ class FeatureInfo {
   final String text;
   final List<({String code, String label})> options;
 
-  /// `false` quando a lista de códigos é apenas exemplificativa.
   final bool exhaustive;
   final String? note;
 
@@ -74,12 +69,6 @@ class FeatureInfo {
   }
 }
 
-/// Traduções e formatação por idioma.
-///
-/// Os arquivos em `assets/locales/` são **cópias fiéis** de
-/// `frontend-Project/src/locales/`: mesmas chaves, mesmos textos, mesma
-/// interpolação `{{variavel}}`. Uma chave sem tradução cai no pt-BR e avisa no
-/// console em modo de desenvolvimento — nunca renderiza vazio.
 class I18nState extends ChangeNotifier {
   I18nState();
 
@@ -143,8 +132,6 @@ class I18nState extends ChangeNotifier {
     return node is String ? node : null;
   }
 
-  /// Traduz uma chave pontuada (`students.filledOf`), interpolando
-  /// `{{variavel}}`.
   String t(String key, [Map<String, Object> values = const {}]) {
     final translated = _resolve(_messages[_locale], key) ?? _resolve(_messages[_fallback], key);
 
@@ -160,7 +147,6 @@ class I18nState extends ChangeNotifier {
     });
   }
 
-  /// Descrição de um atributo do modelo (`featureDescriptions.<nome>`).
   FeatureInfo? featureInfo(String featureName) {
     final current = _messages[_locale]?['featureDescriptions'];
     final fallback = _messages[_fallback]?['featureDescriptions'];
@@ -177,7 +163,6 @@ class I18nState extends ChangeNotifier {
     return format.format(value);
   }
 
-  /// Percentual com casas fixas, como o `formatPercent` da Web.
   String formatPercent(num ratio, [int digits = 1]) {
     final format = NumberFormat.decimalPercentPattern(
       locale: _locale.intlCode,
@@ -194,18 +179,11 @@ class I18nState extends ChangeNotifier {
     return format.format(value);
   }
 
-  /// Data no formato aceito pelos filtros por período (`yyyy-MM-dd`).
   String formatIsoDate(DateTime value) => DateFormat('yyyy-MM-dd').format(value);
 }
 
-/// Açúcar sintático para `context.i18n.t(...)` dentro de um `build`.
-///
-/// Assina as mudanças de idioma, então a tela se redesenha sozinha quando o
-/// usuário troca de língua.
 extension I18nContext on BuildContext {
   I18nState get i18n => watch<I18nState>();
 
-  /// Versão que **não** assina — para usar em callbacks (`onPressed`), onde
-  /// `watch` não é permitido.
   I18nState get i18nRead => read<I18nState>();
 }

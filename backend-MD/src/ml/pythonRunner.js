@@ -9,17 +9,10 @@ const PYTHON_ERROR_STATUS = {
   MISSING_FEATURES: 400,
   INVALID_FEATURE_VALUE: 400,
   MODEL_NOT_TRAINED: 503,
-  CLUSTERING_NOT_TRAINED: 503,
   MODEL_ARTIFACT_CORRUPTED: 500,
-  CLUSTER_ARTIFACT_CORRUPTED: 500,
   INFERENCE_FAILED: 500,
 };
 
-// Cada chamada sobe um interpretador Python novo (importa sklearn/pandas/numpy
-// do zero). Sem limite, um pico de requisições simultâneas competiria por
-// CPU/memória e poderia estourar ML_TIMEOUT_MS por causa da concorrência, não
-// da carga real de cada chamada — daí o semáforo abaixo, configurável via
-// ML_MAX_CONCURRENCY.
 let activeCount = 0;
 const waitQueue = [];
 

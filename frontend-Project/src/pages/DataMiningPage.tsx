@@ -1,217 +1,31 @@
-import { useState } from 'react';
-
-import { BarList, DonutChart } from '../components/charts';
+import { BarList } from '../components/charts';
 import { PageHeader } from '../components/Layout';
 import {
   Alert,
-  AttentionBadge,
   Card,
-  CLASSIFICATION_COLOR,
   DefinitionList,
   Disclaimer,
   EmptyState,
-  ErrorState,
   Loading,
   Stat,
-  Tabs,
 } from '../components/ui';
 import { useApiError } from '../hooks/useApiError';
 import { useAsync } from '../hooks/useAsync';
 import { dataMiningService } from '../services';
 import { useI18n } from '../state/I18nContext';
-import type { Classification } from '../types/api';
-
-type TabId = 'profiles' | 'model';
 
 export function DataMiningPage() {
   const { t } = useI18n();
-  const [tab, setTab] = useState<TabId>('profiles');
 
   return (
     <div className="stack">
       <PageHeader title={t('dataMining.title')} subtitle={t('dataMining.subtitle')} />
-      <Tabs
-        tabs={[
-          { id: 'profiles', label: t('dataMining.profiles') },
-          { id: 'model', label: t('dataMining.modelProcess') },
-        ]}
-        active={tab}
-        onChange={setTab}
-      />
-      {tab === 'profiles' ? <ProfilesTab /> : <ModelTab />}
+      <ModelProcess />
     </div>
   );
 }
 
-function ProfilesTab() {
-  const { t, formatNumber, formatPercent } = useI18n();
-  const { describe } = useApiError();
-
-  const profiles = useAsync((signal) => dataMiningService.profiles(signal), []);
-  const distribution = useAsync(
-    (signal) => dataMiningService.clusterDistribution(undefined, signal),
-    [],
-  );
-
-  if (profiles.loading && !profiles.data) return <Loading />;
-  if (profiles.error) {
-    return (
-      <div className="stack">
-        <Alert tone="warning" title={t('dataMining.unavailable')}>
-          {describe(profiles.error)}
-        </Alert>
-        <Card>
-          <EmptyState
-            icon="◔"
-            title={t('dataMining.profilesEmpty')}
-            hint={t('dataMining.unavailableHint')}
-          />
-        </Card>
-      </div>
-    );
-  }
-  if (!profiles.data) return null;
-
-  const { clustering, profiles: groups, selectionRationale } = profiles.data;
-  const local = distribution.data;
-
-  return (
-    <div className="stack">
-      <Alert tone="info">{t('dataMining.profilesHint')}</Alert>
-
-      <div className="grid grid--stats">
-        <Stat label={t('dataMining.algorithm')} value={clustering.algorithm} tone="accent" />
-        <Stat label={t('dataMining.groups')} value={formatNumber(clustering.k)} />
-        <Stat
-          label={t('dataMining.silhouette')}
-          value={formatNumber(clustering.silhouette, { maximumFractionDigits: 4 })}
-        />
-        <Stat
-          label={t('dataMining.localCount')}
-          value={formatNumber(local?.totalAnalysesWithCluster ?? 0)}
-          meta={t('dataMining.localDistributionHint')}
-        />
-      </div>
-
-      <Card title={t('dataMining.selectionRationale')}>
-        <p className="text-sm">{selectionRationale}</p>
-      </Card>
-
-      {local && local.distribution.length > 0 && (
-        <Card
-          title={t('dataMining.localDistribution')}
-          hint={t('dataMining.localDistributionHint')}
-        >
-          <BarList
-            max={local.totalAnalysesWithCluster}
-            items={local.distribution.map((item) => ({
-              label: `${t('dataMining.group')} ${item.clusterId}`,
-              value: item.localCount,
-              color:
-                item.attentionLevel === 'alta'
-                  ? 'var(--danger)'
-                  : item.attentionLevel === 'média'
-                    ? 'var(--warning)'
-                    : 'var(--success)',
-              display: `${formatNumber(item.localCount)} · ${formatPercent(item.localRatio, 1)}`,
-              title: `${t('dataMining.dropoutRate')}: ${formatPercent(item.dropoutRatio, 1)}`,
-            }))}
-          />
-        </Card>
-      )}
-
-      <div className="grid grid--halves">
-        {groups.map((profile) => {
-          const slices = (
-            Object.entries(profile.classDistribution) as [Classification, { count: number; ratio: number }][]
-          ).map(([className, value]) => ({
-            label: t(`classification.${className}`),
-            value: value.count,
-            color: CLASSIFICATION_COLOR[className],
-          }));
-
-          const localEntry = local?.distribution.find(
-            (item) => item.clusterId === profile.clusterId,
-          );
-
-          return (
-            <Card
-              key={profile.clusterId}
-              title={`${t('dataMining.group')} ${profile.clusterId}`}
-              actions={<AttentionBadge value={profile.attentionLevel} />}
-            >
-              <div className="stack">
-                <DefinitionList
-                  items={[
-                    { term: t('dataMining.groupSize'), value: formatNumber(profile.size) },
-                    { term: t('dataMining.groupShare'), value: formatPercent(profile.ratio, 1) },
-                    {
-                      term: t('dataMining.dropoutRate'),
-                      value: (
-                        <strong
-                          style={{
-                            color:
-                              profile.dropoutRatio >= 0.5
-                                ? 'var(--danger)'
-                                : profile.dropoutRatio >= 0.25
-                                  ? 'var(--warning)'
-                                  : 'var(--success)',
-                          }}
-                        >
-                          {formatPercent(profile.dropoutRatio, 1)}
-                        </strong>
-                      ),
-                    },
-                    ...(localEntry
-                      ? [
-                          {
-                            term: t('dataMining.localCount'),
-                            value: formatNumber(localEntry.localCount),
-                          },
-                        ]
-                      : []),
-                  ]}
-                />
-
-                <div>
-                  <div className="result-hero__label" style={{ marginBottom: 6 }}>
-                    {t('dataMining.classDistribution')}
-                  </div>
-                  <DonutChart slices={slices} caption={t('dataMining.groupSize')} size={148} />
-                </div>
-
-                <details>
-                  <summary className="text-sm text-muted" style={{ cursor: 'pointer' }}>
-                    {t('dataMining.featureMeans')}
-                  </summary>
-                  <div className="definition-list" style={{ marginTop: 10 }}>
-                    {Object.entries(profile.featureMeans).map(([name, value]) => (
-                      <div key={name}>
-                        <div
-                          className="definition-list__term mono"
-                          style={{ textTransform: 'none' }}
-                        >
-                          {name}
-                        </div>
-                        <div className="definition-list__value">
-                          {formatNumber(value, { maximumFractionDigits: 2 })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </details>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-
-      <Disclaimer>{profiles.data.disclaimer}</Disclaimer>
-    </div>
-  );
-}
-
-function ModelTab() {
+function ModelProcess() {
   const { t, formatNumber, formatPercent, formatDate } = useI18n();
   const { describe } = useApiError();
 
@@ -252,10 +66,16 @@ function ModelTab() {
         />
         <Stat label={t('dataMining.testF1')} value={formatNumber(evaluation.test_f1_macro, { maximumFractionDigits: 4 })} />
         <Stat
+          label={t('dataMining.recallDropout')}
+          value={formatPercent(evaluation.test_recall_dropout, 1)}
+          meta={t('dataMining.recallDropoutHint')}
+          tone="accent"
+        />
+        <Stat
           label={t('dataMining.overfitGap')}
-          value={formatNumber(evaluation.overfit_gap, { maximumFractionDigits: 4 })}
-          meta={`${t('dataMining.trainAccuracy')}: ${formatPercent(evaluation.train_accuracy, 1)}`}
-          tone={evaluation.overfit_gap > 0.1 ? 'warning' : 'success'}
+          value={formatNumber(evaluation.generalization_gap, { maximumFractionDigits: 4 })}
+          meta={`${t('dataMining.devAccuracy')}: ${formatPercent(evaluation.dev_accuracy, 1)}`}
+          tone={evaluation.generalization_gap > 0.1 ? 'warning' : 'success'}
         />
       </div>
 
@@ -351,9 +171,9 @@ function ModelTab() {
               <tr>
                 <th>{t('dataMining.candidateAlgorithm')}</th>
                 <th className="table__num">{t('dataMining.cvAccuracy')}</th>
-                <th className="table__num">{t('dataMining.trainAccuracy')}</th>
-                <th className="table__num">{t('dataMining.testAccuracy')}</th>
-                <th className="table__num">{t('dataMining.testF1')}</th>
+                <th className="table__num">{t('dataMining.cvF1')}</th>
+                <th className="table__num">{t('dataMining.recallDropout')}</th>
+                <th className="table__num">{t('dataMining.selectionScore')}</th>
                 <th className="table__num">{t('dataMining.overfitGap')}</th>
               </tr>
             </thead>
@@ -377,17 +197,17 @@ function ModelTab() {
                         })}
                       </td>
                       <td className="table__num">
-                        {formatNumber(Number(candidate.train_accuracy), {
+                        {formatNumber(Number(candidate.cv_f1_macro_mean), {
                           maximumFractionDigits: 4,
                         })}
                       </td>
                       <td className="table__num">
-                        {formatNumber(Number(candidate.test_accuracy), {
+                        {formatNumber(Number(candidate.cv_recall_dropout_mean), {
                           maximumFractionDigits: 4,
                         })}
                       </td>
                       <td className="table__num">
-                        {formatNumber(Number(candidate.test_f1_macro), {
+                        {formatNumber(Number(candidate.cv_selection_score), {
                           maximumFractionDigits: 4,
                         })}
                       </td>

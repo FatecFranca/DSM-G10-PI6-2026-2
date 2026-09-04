@@ -14,8 +14,6 @@ import '../widgets/app_shell.dart';
 import '../widgets/features_form.dart';
 import '../widgets/ui.dart';
 
-/// Cadastro e edição de estudante, com o formulário de atributos gerado pelo
-/// contrato do modelo.
 class StudentFormPage extends StatefulWidget {
   const StudentFormPage({super.key, this.studentId});
 
@@ -293,7 +291,6 @@ class _StudentFormPageState extends State<StudentFormPage> {
                     error: _fieldErrors['institutionId'],
                     child: AppDropdown<String?>(
                       value: _institutionId,
-                      // Na Web a instituição não pode ser trocada na edição.
                       enabled: !_saving && !widget.isEdit,
                       invalid: _fieldErrors.containsKey('institutionId'),
                       onChanged: (value) => setState(() => _institutionId = value),
@@ -305,8 +302,6 @@ class _StudentFormPageState extends State<StudentFormPage> {
                     ),
                   )
                 else
-                  // Analista e Consulta ficam presos à própria instituição: o
-                  // campo é só leitura, como na Web.
                   LabeledField(
                     label: t.t('students.institution'),
                     child: InputDecorator(

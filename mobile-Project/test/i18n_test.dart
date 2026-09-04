@@ -59,10 +59,6 @@ void main() {
         final key = 'followUpStatus.${value.api}';
         expect(i18n.t(key), isNot(key), reason: '$key faltando em ${locale.code}');
       }
-      for (final value in AttentionLevel.values) {
-        final key = 'attention.${value.api}';
-        expect(i18n.t(key), isNot(key), reason: '$key faltando em ${locale.code}');
-      }
       for (final value in Role.values) {
         expect(i18n.t('roles.${value.api}'), isNot('roles.${value.api}'));
         expect(i18n.t('roles.${value.api}_hint'), isNot('roles.${value.api}_hint'));

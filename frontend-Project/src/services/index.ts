@@ -3,8 +3,6 @@ import type {
   AnalysisRecord,
   AnalysisResult,
   BatchAnalysisResponse,
-  ClusterDistributionResponse,
-  ClusterProfilesResponse,
   Dashboard,
   FeatureContract,
   FollowUp,
@@ -105,14 +103,14 @@ export const analysesService = {
 
   get: (id: string) => api.get<AnalysisResult>(`/analyses/${id}`),
 
-  runForStudent: (studentId: string, includeClustering = true) =>
-    api.post<AnalysisResult>(`/analyses/student/${studentId}`, { includeClustering }),
+  runForStudent: (studentId: string) =>
+    api.post<AnalysisResult>(`/analyses/student/${studentId}`, {}),
 
-  runBatch: (studentIds: string[], includeClustering = true) =>
-    api.post<BatchAnalysisResponse>('/analyses/batch', { studentIds, includeClustering }),
+  runBatch: (studentIds: string[]) =>
+    api.post<BatchAnalysisResponse>('/analyses/batch', { studentIds }),
 
-  simulate: (features: StudentFeatures, includeClustering = true) =>
-    api.post<AnalysisResult>('/analyses/simulate', { features, includeClustering }),
+  simulate: (features: StudentFeatures) =>
+    api.post<AnalysisResult>('/analyses/simulate', { features }),
 };
 
 export interface FollowUpFilters {
@@ -163,18 +161,8 @@ export const dashboardService = {
 };
 
 export const dataMiningService = {
-  profiles: (signal?: AbortSignal) =>
-    api.get<ClusterProfilesResponse>('/datamining/profiles', undefined, signal),
-
   model: (signal?: AbortSignal) =>
     api.get<ModelProcessResponse>('/datamining/model', undefined, signal),
-
-  clusterDistribution: (institutionId?: string, signal?: AbortSignal) =>
-    api.get<ClusterDistributionResponse>(
-      '/datamining/cluster-distribution',
-      { institutionId },
-      signal,
-    ),
 };
 
 export interface UserPayload {

@@ -131,8 +131,9 @@ com isso é daqui.
 | `Graduate`, confiança ≥ 0,6 | LOW | Sem indicativo de prioridade |
 | `Graduate`, confiança < 0,6 | MEDIUM | Observação continuada |
 
-Um perfil de agrupamento com atenção `alta` eleva a prioridade em um nível — o agrupamento
-nunca define a prioridade sozinho, mas evita subestimar um caso.
+A prioridade vem exclusivamente da classificação e da confiança do modelo. Até 03/09/2026
+um perfil de agrupamento (`KMeans`) podia elevá-la em um nível; a clusterização foi
+removida do projeto (ver seção 10 do `CONTEXT.md` do `backend-MD`).
 
 ---
 
@@ -161,9 +162,7 @@ nunca define a prioridade sozinho, mas evita subestimar um caso.
 | `GET` | `/api/dashboard` | todos | Indicadores consolidados |
 | `GET` | `/api/dashboard/timeline` | todos | Série temporal por classe |
 | `GET` | `/api/dashboard/institutions` | ADMIN | Comparativo entre instituições |
-| `GET` | `/api/datamining/profiles` | todos | Perfis descobertos |
 | `GET` | `/api/datamining/model` | todos | Modelo em uso e seu processo |
-| `GET` | `/api/datamining/cluster-distribution` | todos | Perfis × estudantes analisados |
 | `GET` `POST` `PATCH` `DELETE` | `/api/users` | ADMIN | Administração de usuários |
 | `GET` `POST` `PATCH` `DELETE` | `/api/institutions` | ADMIN (escrita) | Administração de instituições |
 

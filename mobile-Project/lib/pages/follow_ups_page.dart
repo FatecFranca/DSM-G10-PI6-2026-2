@@ -14,8 +14,6 @@ import '../widgets/app_shell.dart';
 import '../widgets/async_builder.dart';
 import '../widgets/ui.dart';
 
-/// Fila de acompanhamentos: onde as ações tomadas a partir de uma análise ficam
-/// registradas e mudam de situação.
 class FollowUpsPage extends StatefulWidget {
   const FollowUpsPage({super.key});
 

@@ -13,10 +13,6 @@ import '../widgets/app_shell.dart';
 import '../widgets/async_builder.dart';
 import '../widgets/ui.dart';
 
-/// Administração de instituições — somente para o papel Administrador.
-///
-/// Desativar uma instituição não apaga o histórico de estudantes e análises
-/// vinculados a ela.
 class AdminInstitutionsPage extends StatefulWidget {
   const AdminInstitutionsPage({super.key});
 

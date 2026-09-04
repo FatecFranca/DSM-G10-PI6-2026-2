@@ -9,8 +9,6 @@ import '../state/i18n_state.dart';
 import '../widgets/app_shell.dart';
 import '../widgets/ui.dart';
 
-/// Recuperação de senha — disponível apenas para contas do perfil Consulta,
-/// como diz o próprio texto da tela.
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
 
@@ -100,12 +98,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   }
 }
 
-/// Redefinição a partir do link recebido por e-mail.
-///
-/// O link chega como `.../reset-password?token=...`. No Mobile a rota é
-/// alcançada colando o token, já que o app não registra *deep link* — a decisão
-/// de registrar um esquema `https` verificado ficaria fora do escopo do PI e
-/// exigiria domínio próprio.
 class ResetPasswordPage extends StatefulWidget {
   const ResetPasswordPage({super.key, required this.token});
 

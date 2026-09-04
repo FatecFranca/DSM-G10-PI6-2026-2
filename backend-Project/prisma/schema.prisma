@@ -144,10 +144,6 @@ model Analysis {
 
   featuresSnapshot Json
 
-  clusterId      Int?
-  clusterVersion String?
-  attentionLevel String?
-
   priority Priority
 
   requestedById String? @db.ObjectId

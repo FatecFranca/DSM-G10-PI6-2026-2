@@ -16,9 +16,8 @@
     "dev": "nodemon src/server.js",
     "ml:prepare": "node src/scripts/runMl.js prepare_data.py",
     "ml:train": "node src/scripts/runMl.js train_model.py",
-    "ml:cluster": "node src/scripts/runMl.js train_clusters.py",
     "ml:explore": "node src/scripts/runMl.js explore.py",
-    "ml:pipeline": "npm run ml:prepare && npm run ml:train && npm run ml:cluster",
+    "ml:pipeline": "npm run ml:prepare && npm run ml:train",
     "ml:register": "node src/scripts/registerModel.js"
   },
   "dependencies": {

@@ -21,9 +21,6 @@ const ANALYSIS_FIELDS = {
   probabilities: true,
   modelVersion: true,
   algorithm: true,
-  clusterId: true,
-  clusterVersion: true,
-  attentionLevel: true,
   priority: true,
   createdAt: true,
 };
@@ -39,15 +36,6 @@ function present(analysis, recommendation, extra = {}) {
       probabilities: analysis.probabilities,
     },
     recommendation,
-    cluster:
-      analysis.clusterId === null || analysis.clusterId === undefined
-        ? null
-        : {
-            clusterId: analysis.clusterId,
-            clusterVersion: analysis.clusterVersion,
-            attentionLevel: analysis.attentionLevel,
-            ...extra.clusterProfile,
-          },
     model: { version: analysis.modelVersion, algorithm: analysis.algorithm },
     createdAt: analysis.createdAt,
     disclaimer: DISCLAIMER,
@@ -55,7 +43,7 @@ function present(analysis, recommendation, extra = {}) {
   };
 }
 
-export async function analyzeStudent(studentId, user, { includeClustering = true } = {}) {
+export async function analyzeStudent(studentId, user) {
   const student = await prisma.student.findUnique({
     where: { id: studentId },
     select: { id: true, institutionId: true, features: true, active: true, name: true },
@@ -85,24 +73,7 @@ export async function analyzeStudent(studentId, user, { includeClustering = true
 
   const classification = await md.classify(features);
 
-  let cluster = null;
-  let clusterProfile = {};
-  if (includeClustering) {
-    try {
-      const assignment = await md.assignCluster(features);
-      const [first] = assignment.results;
-      cluster = {
-        clusterId: first.clusterId,
-        clusterVersion: assignment.clustering.version,
-        attentionLevel: first.attentionLevel,
-      };
-      clusterProfile = { profile: first.profile, distance: first.distance };
-    } catch (error) {
-      console.warn(`[analyses] agrupamento indisponível (${error.code}): ${error.message}`);
-    }
-  }
-
-  const recommendation = derivePriority(classification, cluster ?? {});
+  const recommendation = derivePriority(classification);
 
   const [analysis] = await prisma.$transaction([
     prisma.analysis.create({
@@ -116,9 +87,6 @@ export async function analyzeStudent(studentId, user, { includeClustering = true
         modelVersion: classification.model.version,
         algorithm: classification.model.algorithm,
         featuresSnapshot: features,
-        clusterId: cluster?.clusterId ?? null,
-        clusterVersion: cluster?.clusterVersion ?? null,
-        attentionLevel: cluster?.attentionLevel ?? null,
         priority: recommendation.priority,
         requestedById: user.id,
       },
@@ -137,7 +105,6 @@ export async function analyzeStudent(studentId, user, { includeClustering = true
   ]);
 
   return present(analysis, recommendation, {
-    clusterProfile,
     rest: {
       student: { id: student.id, name: student.name },
       ...(outOfRange.length > 0 && { warnings: outOfRange }),
@@ -145,29 +112,12 @@ export async function analyzeStudent(studentId, user, { includeClustering = true
   });
 }
 
-export async function analyzeAdHoc(rawFeatures, { includeClustering = true } = {}) {
+export async function analyzeAdHoc(rawFeatures) {
   const { features, outOfRange } = await validateFeatures(rawFeatures, { requireComplete: true });
 
   const classification = await md.classify(features);
 
-  let cluster = null;
-  let clusterExtra = {};
-  if (includeClustering) {
-    try {
-      const assignment = await md.assignCluster(features);
-      const [first] = assignment.results;
-      cluster = {
-        clusterId: first.clusterId,
-        clusterVersion: assignment.clustering.version,
-        attentionLevel: first.attentionLevel,
-      };
-      clusterExtra = { profile: first.profile, distance: first.distance };
-    } catch (error) {
-      console.warn(`[analyses] agrupamento indisponível (${error.code}): ${error.message}`);
-    }
-  }
-
-  const recommendation = derivePriority(classification, cluster ?? {});
+  const recommendation = derivePriority(classification);
 
   return {
     persisted: false,
@@ -178,14 +128,13 @@ export async function analyzeAdHoc(rawFeatures, { includeClustering = true } = {
       probabilities: classification.probabilities,
     },
     recommendation,
-    cluster: cluster ? { ...cluster, ...clusterExtra } : null,
     model: { version: classification.model.version, algorithm: classification.model.algorithm },
     disclaimer: DISCLAIMER,
     ...(outOfRange.length > 0 && { warnings: outOfRange }),
   };
 }
 
-export async function analyzeBatch(studentIds, user, { includeClustering = true } = {}) {
+export async function analyzeBatch(studentIds, user) {
   const where = { id: { in: studentIds }, ...institutionScope(user) };
 
   const students = await prisma.student.findMany({
@@ -227,27 +176,10 @@ export async function analyzeBatch(studentIds, user, { includeClustering = true 
   const records = eligible.map((item) => item.features);
   const batch = await md.classifyBatch(records);
 
-  let clusterBatch = null;
-  if (includeClustering) {
-    try {
-      clusterBatch = await md.assignClusterBatch(records);
-    } catch (error) {
-      console.warn(`[analyses] agrupamento indisponível no lote (${error.code}): ${error.message}`);
-    }
-  }
-
   const results = [];
   for (const [index, item] of eligible.entries()) {
     const prediction = batch.results[index];
-    const assignment = clusterBatch?.results?.[index] ?? null;
-    const cluster = assignment
-      ? {
-          clusterId: assignment.clusterId,
-          clusterVersion: clusterBatch.clustering.version,
-          attentionLevel: assignment.attentionLevel,
-        }
-      : null;
-    const recommendation = derivePriority(prediction, cluster ?? {});
+    const recommendation = derivePriority(prediction);
 
     const [analysis] = await prisma.$transaction([
       prisma.analysis.create({
@@ -261,9 +193,6 @@ export async function analyzeBatch(studentIds, user, { includeClustering = true 
           modelVersion: batch.model.version,
           algorithm: batch.model.algorithm,
           featuresSnapshot: item.features,
-          clusterId: cluster?.clusterId ?? null,
-          clusterVersion: cluster?.clusterVersion ?? null,
-          attentionLevel: cluster?.attentionLevel ?? null,
           priority: recommendation.priority,
           requestedById: user.id,
         },
@@ -346,7 +275,7 @@ export async function getAnalysis(id, user) {
   if (!analysis) throw AppError.notFound('Análise não encontrada.', 'ANALYSIS_NOT_FOUND');
   assertInstitutionAccess(user, analysis.institutionId);
 
-  const recommendation = derivePriority(analysis, { attentionLevel: analysis.attentionLevel });
+  const recommendation = derivePriority(analysis);
 
   return {
     ...present(analysis, recommendation),

@@ -1,19 +1,12 @@
 export const PRIORITY = { LOW: 'LOW', MEDIUM: 'MEDIUM', HIGH: 'HIGH' };
 
-const ORDER = [PRIORITY.LOW, PRIORITY.MEDIUM, PRIORITY.HIGH];
-
 export const PRIORITY_RANK = { LOW: 1, MEDIUM: 2, HIGH: 3 };
 
 export const rankOf = (priority) => PRIORITY_RANK[priority] ?? PRIORITY_RANK.MEDIUM;
 
-function escalate(priority) {
-  const index = ORDER.indexOf(priority);
-  return ORDER[Math.min(index + 1, ORDER.length - 1)];
-}
-
 const CONFIDENT_THRESHOLD = 0.6;
 
-export function derivePriority(result, cluster = {}) {
+export function derivePriority(result) {
   const { classification, confidence } = result;
   const confident = typeof confidence === 'number' && confidence >= CONFIDENT_THRESHOLD;
 
@@ -44,9 +37,6 @@ export function derivePriority(result, cluster = {}) {
     description = 'Classificação não reconhecida pelas regras de acompanhamento. Requer revisão.';
   }
 
-  const escalatedByCluster = cluster?.attentionLevel === 'alta' && priority !== PRIORITY.HIGH;
-  if (escalatedByCluster) priority = escalate(priority);
-
   return {
     priority,
     label,
@@ -56,8 +46,6 @@ export function derivePriority(result, cluster = {}) {
       confidence,
       confidenceThreshold: CONFIDENT_THRESHOLD,
       confidentSignal: confident,
-      clusterAttentionLevel: cluster?.attentionLevel ?? null,
-      escalatedByCluster,
     },
   };
 }

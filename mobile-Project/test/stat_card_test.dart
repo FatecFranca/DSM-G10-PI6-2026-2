@@ -3,13 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pae_mobile/core/theme.dart';
 import 'package:pae_mobile/widgets/ui.dart';
 
-/// O `StatCard` reproduz o `.stat` do `global.css`, incluindo a barra colorida
-/// à esquerda (`border-left: 3px solid`) dos cartões com tom.
-///
-/// Os cartões com tom apareciam **em branco** no Painel e em Mineração de Dados:
-/// só os de tom neutro renderizavam. Um `BoxDecoration` com `borderRadius`
-/// exige borda uniforme, e a barra de 3px em uma única lateral tornava a borda
-/// não uniforme — a pintura falhava e o cartão sumia.
 void main() {
   Future<void> pump(WidgetTester tester, Widget child, {Size? size}) async {
     if (size != null) {
@@ -56,16 +49,13 @@ void main() {
   });
 
   testWidgets('texto de apoio longo não estoura o cartão', (tester) async {
-    // É o caso real de Mineração de Dados: o `meta` do cartão "Estudantes
-    // analisados" é uma frase inteira, e em tela de celular ele transbordava
-    // com "BOTTOM OVERFLOWED BY 26 PIXELS".
     await pump(
       tester,
       StatGrid(
         children: const [
-          StatCard(label: 'Algoritmo', value: 'KMeans', tone: StatTone.accent),
+          StatCard(label: 'Algoritmo', value: 'LinearDiscriminantAnalysis', tone: StatTone.accent),
           StatCard(label: 'Grupos', value: '3'),
-          StatCard(label: 'Coeficiente de silhueta', value: '0,2142'),
+          StatCard(label: 'F1 macro no teste', value: '0,686'),
           StatCard(
             label: 'Estudantes analisados',
             value: '90',
@@ -83,18 +73,16 @@ void main() {
       isNull,
       reason: 'a altura do cartão precisa acompanhar o conteúdo, sem transbordar',
     );
-    expect(find.text('KMeans'), findsOneWidget);
+    expect(find.text('LinearDiscriminantAnalysis'), findsOneWidget);
     expect(find.text('90'), findsOneWidget);
   });
 
   testWidgets('todos os cartoes tem exatamente a mesma altura', (tester) async {
-    // Os quatro casos que existem de verdade nas telas: com e sem texto de
-    // apoio, texto curto e uma frase inteira.
     await pump(
       tester,
       StatGrid(
         children: const [
-          StatCard(label: 'Algoritmo', value: 'KMeans', tone: StatTone.accent),
+          StatCard(label: 'Algoritmo', value: 'LinearDiscriminantAnalysis', tone: StatTone.accent),
           StatCard(label: 'Grupos', value: '3'),
           StatCard(label: 'Estudantes cadastrados', value: '1.234', meta: '90 ativos'),
           StatCard(
@@ -127,8 +115,6 @@ void main() {
     testWidgets('fonte do sistema a ${(escala * 100).round()}% nao faz o cartao transbordar', (
       tester,
     ) async {
-      // Quem aumenta a fonte nas configuracoes do Android quebraria uma altura
-      // fixa em pixels; a altura da grade e calculada sobre a escala vigente.
       tester.view.physicalSize = const Size(360, 1400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);

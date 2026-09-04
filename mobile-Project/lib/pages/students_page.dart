@@ -17,7 +17,6 @@ import '../widgets/async_builder.dart';
 import '../widgets/ui.dart';
 import 'dashboard_page.dart' show ListRowTile;
 
-/// Lista de estudantes com busca, filtros, ordenação e análise em lote.
 class StudentsPage extends StatefulWidget {
   const StudentsPage({super.key});
 
@@ -50,8 +49,6 @@ class _StudentsPageState extends State<StudentsPage> {
     super.dispose();
   }
 
-  /// Mesmo atraso de 400ms do `useDebounced` da Web: evita uma requisição por
-  /// tecla digitada.
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
@@ -141,9 +138,6 @@ class _StudentsPageState extends State<StudentsPage> {
                         suffix: Icon(Icons.search, size: 19, color: colors.textMuted),
                       ),
                       const SizedBox(height: 10),
-                      // Os cinco filtros da toolbar da Web ficam recolhidos por
-                      // padrão: na largura de um celular eles empurrariam a
-                      // lista para fora da primeira tela.
                       InkWell(
                         onTap: () => setState(() => _filtersOpen = !_filtersOpen),
                         child: Row(

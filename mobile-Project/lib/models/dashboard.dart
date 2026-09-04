@@ -3,7 +3,6 @@ import 'common.dart';
 import 'enums.dart';
 import 'student.dart';
 
-/// Indicadores consolidados (`GET /api/dashboard`).
 class Dashboard {
   const Dashboard({
     required this.totalStudents,
@@ -70,7 +69,6 @@ class Dashboard {
   }
 }
 
-/// Ponto da série temporal (`GET /api/dashboard/timeline`).
 class TimelinePoint {
   const TimelinePoint({
     required this.period,

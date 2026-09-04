@@ -10,10 +10,8 @@ export const ARTIFACT_FILES = {
   featureSpec: path.join(ARTIFACTS_DIR, 'feature_spec.json'),
   labelMap: path.join(ARTIFACTS_DIR, 'label_map.json'),
   modelMetadata: path.join(ARTIFACTS_DIR, 'model_metadata.json'),
-  clusterMetadata: path.join(ARTIFACTS_DIR, 'cluster_metadata.json'),
   model: path.join(ARTIFACTS_DIR, 'model.pkl'),
   scaler: path.join(ARTIFACTS_DIR, 'scaler.pkl'),
-  clusterModel: path.join(ARTIFACTS_DIR, 'cluster_model.pkl'),
 };
 
 const cache = new Map();
@@ -100,31 +98,17 @@ export async function getModelMetadata() {
   }
 }
 
-export async function getClusterMetadata() {
-  try {
-    return await readJsonCached(ARTIFACT_FILES.clusterMetadata);
-  } catch {
-    throw AppError.serviceUnavailable(
-      'Nenhum agrupamento treinado disponível: execute "npm run ml:cluster" (ML/train_clusters.py).',
-      'CLUSTERING_NOT_TRAINED',
-    );
-  }
-}
-
 export async function getMlStatus() {
-  const [featureSpec, model, scaler, clusterModel] = await Promise.all([
+  const [featureSpec, model, scaler] = await Promise.all([
     artifactExists(ARTIFACT_FILES.featureSpec),
     artifactExists(ARTIFACT_FILES.model),
     artifactExists(ARTIFACT_FILES.scaler),
-    artifactExists(ARTIFACT_FILES.clusterModel),
   ]);
 
   const status = {
     featureSpecReady: featureSpec,
     classifierReady: model && scaler,
-    clusteringReady: clusterModel,
     modelVersion: null,
-    clusterVersion: null,
   };
 
   if (status.classifierReady) {
@@ -132,13 +116,6 @@ export async function getMlStatus() {
       status.modelVersion = (await readJsonCached(ARTIFACT_FILES.modelMetadata)).model_version;
     } catch {
       status.classifierReady = false;
-    }
-  }
-  if (status.clusteringReady) {
-    try {
-      status.clusterVersion = (await readJsonCached(ARTIFACT_FILES.clusterMetadata)).cluster_version;
-    } catch {
-      status.clusteringReady = false;
     }
   }
 

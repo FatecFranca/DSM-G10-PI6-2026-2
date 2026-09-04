@@ -9,12 +9,13 @@ const definition = {
   info: {
     title: 'backend-MD — Motor de IA e Mineração de Dados',
     version: env.API_VERSION,
+    license: { name: 'ISC' },
     description: [
       'Serviço especializado de Inteligência Artificial e Mineração de Dados do',
       'projeto **Predict Students\' Dropout and Academic Success Classification**.',
       '',
-      'Classifica estudantes entre `Dropout`, `Enrolled` e `Graduate` e disponibiliza',
-      'análise não supervisionada de perfis.',
+      'Classifica estudantes entre `Dropout`, `Enrolled` e `Graduate` e expõe o',
+      'processo de Mineração de Dados que produziu o modelo.',
       '',
       '### Consumidor',
       'O consumidor previsto é o **backend-Project**, nunca um front-end diretamente.',
@@ -37,8 +38,11 @@ const definition = {
     { name: 'Saúde', description: 'Diagnóstico do serviço (público)' },
     { name: 'Contrato', description: 'Contrato de dados aceito pelo modelo' },
     { name: 'Classificação', description: 'Aprendizado supervisionado — 3 classes' },
-    { name: 'Mineração de Dados', description: 'Aprendizado não supervisionado — perfis' },
-    { name: 'Modelos', description: 'Metadados técnicos de reprodutibilidade' },
+    {
+      name: 'Modelos',
+      description:
+        'Processo de Mineração de Dados e metadados técnicos de reprodutibilidade',
+    },
   ],
   components: {
     securitySchemes: {
@@ -56,7 +60,7 @@ const definition = {
       Error: {
         type: 'object',
         properties: {
-          error: { type: 'string, código estável', example: 'INVALID_FEATURES' },
+          error: { type: 'string', description: 'Código estável', example: 'INVALID_FEATURES' },
           message: { type: 'string' },
           details: { description: 'Detalhamento, quando aplicável' },
         },
@@ -124,7 +128,7 @@ const definition = {
         properties: {
           version: { type: 'string', example: 'LogisticRegression-20260817T145904' },
           algorithm: { type: 'string' },
-          contractVersion: { type: 'string', example: '1.0.0' },
+          contractVersion: { type: 'string', example: '1.1.0' },
           supportsProbability: { type: 'boolean' },
           trainedAt: { type: 'string', format: 'date-time' },
           classes: { type: 'array', items: { type: 'string' } },
@@ -182,63 +186,12 @@ const definition = {
           disclaimer: { type: 'string' },
         },
       },
-      ClusterProfile: {
-        type: 'object',
-        properties: {
-          clusterId: { type: 'integer' },
-          size: { type: 'integer' },
-          ratio: { type: 'number' },
-          dropoutRatio: { type: 'number' },
-          attentionLevel: { type: 'string', enum: ['baixa', 'média', 'alta'] },
-          classDistribution: { type: 'object' },
-          featureMeans: { type: 'object', additionalProperties: { type: 'number' } },
-        },
-      },
-      ClusterProfiles: {
-        type: 'object',
-        properties: {
-          clustering: {
-            type: 'object',
-            properties: {
-              version: { type: 'string' },
-              algorithm: { type: 'string', example: 'KMeans' },
-              k: { type: 'integer' },
-              silhouette: { type: 'number' },
-              trainedAt: { type: 'string', format: 'date-time' },
-            },
-          },
-          selectionRationale: { type: 'string' },
-          metrics: { type: 'object' },
-          profiles: { type: 'array', items: { $ref: '#/components/schemas/ClusterProfile' } },
-          disclaimer: { type: 'string' },
-        },
-      },
-      ClusterAssignment: {
-        type: 'object',
-        properties: {
-          clustering: { type: 'object' },
-          count: { type: 'integer' },
-          results: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                index: { type: 'integer' },
-                clusterId: { type: 'integer' },
-                distance: { type: 'number' },
-                attentionLevel: { type: 'string' },
-                profile: { type: 'object' },
-              },
-            },
-          },
-          disclaimer: { type: 'string' },
-        },
-      },
       Health: {
         type: 'object',
         properties: {
           status: { type: 'string', enum: ['ok', 'degraded'] },
           service: { type: 'string', example: 'backend-MD' },
+          role: { type: 'string', example: 'IA / Mineração de Dados' },
           apiVersion: { type: 'string' },
           environment: { type: 'string' },
           uptimeSeconds: { type: 'integer' },
@@ -249,9 +202,7 @@ const definition = {
             properties: {
               featureSpecReady: { type: 'boolean' },
               classifierReady: { type: 'boolean' },
-              clusteringReady: { type: 'boolean' },
               modelVersion: { type: 'string', nullable: true },
-              clusterVersion: { type: 'string', nullable: true },
               bridge: { type: 'string', example: 'child_process' },
             },
           },
@@ -293,7 +244,7 @@ const definition = {
         },
       },
       MlUnavailable: {
-        description: 'Camada de ML indisponível (modelo/agrupamento não treinado)',
+        description: 'Camada de ML indisponível (modelo não treinado)',
         content: {
           'application/json': {
             schema: { $ref: '#/components/schemas/Error' },

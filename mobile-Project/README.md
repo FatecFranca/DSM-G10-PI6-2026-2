@@ -81,8 +81,8 @@ flutter analyze     # sem apontamentos
 flutter test        # 27 testes de unidade
 ```
 
-Os testes cobrem a leitura dos contratos da API (incluindo resposta sem agrupamento e
-campo ausente), as regras do formulário de atributos (médias, limites rígidos, descarte de
+Os testes cobrem a leitura dos contratos da API (incluindo campo ausente e confiança
+nula), as regras do formulário de atributos (médias, limites rígidos, descarte de
 vazios), a regra de "acompanhamento vencido" e o i18n — inclusive um teste que verifica
 que **todo** valor de enum do contrato tem tradução nos três idiomas, que é o tipo de
 buraco que só aparece em produção.
@@ -100,7 +100,7 @@ buraco que só aparece em produção.
 | `/students/new`, `/students/:id/edit` | Cadastro/edição + atributos | ADMIN, ANALYST |
 | `/students/:id` | Detalhe: situação, histórico, acompanhamentos, atributos | todos |
 | `/analysis` | Simular análise · Histórico | todos (simular: ADMIN, ANALYST) |
-| `/data-mining` | Perfis descobertos · Processo do modelo | todos |
+| `/data-mining` | Processo de construção do modelo | todos |
 | `/follow-ups` | Fila de acompanhamentos | todos (escrita: ADMIN, ANALYST) |
 | `/profile` | Perfil, troca da própria senha, sair | todos |
 | `/admin/users`, `/admin/institutions` | Administração | ADMIN |

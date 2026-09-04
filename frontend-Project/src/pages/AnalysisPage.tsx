@@ -275,7 +275,6 @@ function HistoryTab() {
                   <th>{t('analysis.student')}</th>
                   <th>{t('analysis.classificationLabel')}</th>
                   <th>{t('priority.label')}</th>
-                  <th>{t('analysis.cluster')}</th>
                   <th>{t('analysis.model')}</th>
                   <th>{t('analysis.requestedBy')}</th>
                 </tr>
@@ -304,9 +303,6 @@ function HistoryTab() {
                     </td>
                     <td>
                       <PriorityBadge value={analysis.priority} />
-                    </td>
-                    <td className="table__muted">
-                      {analysis.clusterId === null ? '—' : `#${analysis.clusterId}`}
                     </td>
                     <td className="table__muted">
                       {analysis.algorithm}

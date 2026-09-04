@@ -7,10 +7,6 @@ import 'package:http/http.dart' as http;
 
 import 'config.dart';
 
-/// Erro estruturado devolvido pela API principal.
-///
-/// Espelha `frontend-Project/src/services/api.ts`: o back-end responde sempre
-/// `{ error, message, details }`, e é o `error` (código) que a interface traduz.
 class ApiException implements Exception {
   ApiException(this.status, this.code, this.message, [this.details]);
 
@@ -21,7 +17,6 @@ class ApiException implements Exception {
 
   bool get isAuthExpired => status == 401;
 
-  /// Lista `[{ field, message }]` de erros de validação por campo, quando houver.
   Map<String, String> get fieldIssues {
     final raw = details;
     if (raw is! List) return {};
@@ -39,16 +34,8 @@ class ApiException implements Exception {
   String toString() => 'ApiException($status, $code): $message';
 }
 
-/// Guarda o token de sessão.
-///
-/// `flutter_secure_storage` (Keystore no Android, Keychain no iOS) e não
-/// `SharedPreferences`: a seção 4 do `.IA/CONTEXT.md` é explícita em que
-/// `SharedPreferences` não é apropriado para token/credencial, por não ser
-/// criptografado.
 class TokenStorage {
   static const _key = 'pi6.auth.token';
-  // Keystore no Android, Keychain no iOS — as opcoes padrao do pacote ja
-  // usam o armazenamento criptografado de cada plataforma.
   static const _storage = FlutterSecureStorage();
 
   Future<String?> read() async {
@@ -68,7 +55,6 @@ class TokenStorage {
     }
   }
 
-  /// Remoção segura no logout (seção 9 do `.IA/CONTEXT.md`).
   Future<void> clear() async {
     try {
       await _storage.delete(key: _key);
@@ -78,11 +64,6 @@ class TokenStorage {
   }
 }
 
-/// Cliente HTTP central do aplicativo.
-///
-/// **Nenhuma tela chama `http` diretamente** — toda rede passa por aqui e pelos
-/// serviços de `lib/services/`, que é o que mantém verificável a regra de não
-/// espalhar URLs nem duplicar chamadas (seção 14, item 5 do `.IA/CONTEXT.md`).
 class ApiClient {
   ApiClient({http.Client? client, TokenStorage? tokenStorage})
       : _client = client ?? http.Client(),
@@ -91,8 +72,6 @@ class ApiClient {
   final http.Client _client;
   final TokenStorage _tokens;
 
-  /// Notificado quando a API devolve 401 fora da tela de login: a sessão caiu e
-  /// o app precisa voltar para o login (equivalente ao `onUnauthorized` da Web).
   final List<VoidCallback> _unauthorizedListeners = [];
 
   TokenStorage get tokens => _tokens;

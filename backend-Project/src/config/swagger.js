@@ -9,6 +9,7 @@ const definition = {
   info: {
     title: 'backend-Project — API principal da plataforma',
     version: env.API_VERSION,
+    license: { name: 'ISC' },
     description: [
       'API de negócio do projeto **Predict Students\' Dropout and Academic Success',
       "Classification** — PI do 6º semestre.",
@@ -44,7 +45,7 @@ const definition = {
     { name: 'Análises', description: 'Execução e histórico de classificações' },
     { name: 'Acompanhamento', description: 'Ações a partir das análises' },
     { name: 'Painel', description: 'Indicadores e séries temporais' },
-    { name: 'Mineração de Dados', description: 'Perfis e processo do modelo' },
+    { name: 'Mineração de Dados', description: 'Processo de construção do modelo' },
     { name: 'Administração', description: 'Usuários e instituições' },
   ],
   components: {
@@ -212,8 +213,6 @@ const definition = {
               confidence: { type: 'number', nullable: true },
               confidenceThreshold: { type: 'number', example: 0.6 },
               confidentSignal: { type: 'boolean' },
-              clusterAttentionLevel: { type: 'string', nullable: true },
-              escalatedByCluster: { type: 'boolean' },
             },
           },
         },
@@ -223,6 +222,10 @@ const definition = {
         properties: {
           id: { type: 'string', nullable: true },
           studentId: { type: 'string', nullable: true },
+          persisted: {
+            type: 'boolean',
+            description: 'Presente e false quando a análise foi simulada e não entrou no histórico.',
+          },
           analysis: {
             type: 'object',
             properties: {
@@ -237,17 +240,6 @@ const definition = {
             },
           },
           recommendation: { $ref: '#/components/schemas/Recommendation' },
-          cluster: {
-            type: 'object',
-            nullable: true,
-            description: 'Perfil atribuído pelo agrupamento, quando disponível.',
-            properties: {
-              clusterId: { type: 'integer' },
-              clusterVersion: { type: 'string' },
-              attentionLevel: { type: 'string', enum: ['baixa', 'média', 'alta'] },
-              profile: { type: 'object' },
-            },
-          },
           model: {
             type: 'object',
             properties: { version: { type: 'string' }, algorithm: { type: 'string' } },
@@ -270,8 +262,6 @@ const definition = {
           priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH'] },
           modelVersion: { type: 'string' },
           algorithm: { type: 'string' },
-          clusterId: { type: 'integer', nullable: true },
-          attentionLevel: { type: 'string', nullable: true },
           createdAt: { type: 'string', format: 'date-time' },
           student: { type: 'object' },
           requestedBy: { type: 'object', nullable: true },
@@ -337,35 +327,12 @@ const definition = {
           disclaimer: { type: 'string' },
         },
       },
-      ClusterProfiles: {
-        type: 'object',
-        properties: {
-          clustering: { type: 'object' },
-          selectionRationale: { type: 'string' },
-          metrics: { type: 'object' },
-          profiles: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                clusterId: { type: 'integer' },
-                size: { type: 'integer' },
-                ratio: { type: 'number' },
-                dropoutRatio: { type: 'number' },
-                attentionLevel: { type: 'string', enum: ['baixa', 'média', 'alta'] },
-                classDistribution: { type: 'object' },
-                featureMeans: { type: 'object' },
-              },
-            },
-          },
-          disclaimer: { type: 'string' },
-        },
-      },
       Health: {
         type: 'object',
         properties: {
           status: { type: 'string', enum: ['ok', 'degraded', 'unavailable'] },
           service: { type: 'string', example: 'backend-Project' },
+          role: { type: 'string', example: 'API principal e núcleo de negócio' },
           apiVersion: { type: 'string' },
           environment: { type: 'string' },
           uptimeSeconds: { type: 'integer' },
@@ -377,7 +344,6 @@ const definition = {
               reachable: { type: 'boolean' },
               status: { type: 'string', nullable: true },
               classifierReady: { type: 'boolean' },
-              clusteringReady: { type: 'boolean' },
               modelVersion: { type: 'string', nullable: true },
             },
           },
@@ -385,10 +351,6 @@ const definition = {
       },
     },
     responses: {
-      BadRequest: {
-        description: 'Requisição malformada',
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
-      },
       Unauthorized: {
         description: 'Token ausente, inválido ou expirado',
         content: {

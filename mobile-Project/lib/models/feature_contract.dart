@@ -1,11 +1,5 @@
 import 'enums.dart';
 
-/// Especificação de um atributo aceito pelo modelo.
-///
-/// Vem de `GET /api/students/feature-contract`, que repassa o contrato do
-/// `backend-MD` (gerado em `ML/artifacts/feature_spec.json`). **O app não
-/// mantém uma segunda lista das 36 colunas** — se o modelo for retreinado com
-/// outro conjunto de atributos, o formulário acompanha sozinho.
 class FeatureSpec {
   const FeatureSpec({
     required this.name,
@@ -23,17 +17,13 @@ class FeatureSpec {
   final String name;
   final String label;
 
-  /// `numeric` | `binary` | `categorical`.
   final String kind;
 
-  /// `int` | `float`.
   final String dtype;
 
-  /// Faixa observada no treino (usada como dica e como aviso de extrapolação).
   final double min;
   final double max;
 
-  /// Limite rígido aceito pela validação do Back-End.
   final double hardMin;
   final double hardMax;
 
@@ -81,7 +71,6 @@ class FeatureContract {
       );
 }
 
-/// Quantos dos atributos exigidos já estão cadastrados para um estudante.
 class FeaturesStatus {
   const FeaturesStatus({
     required this.complete,
@@ -107,8 +96,6 @@ class FeaturesStatus {
   }
 }
 
-/// Atributo enviado fora da faixa observada no treino: o modelo extrapolou e a
-/// confiança ali é menos confiável.
 class OutOfRangeWarning {
   const OutOfRangeWarning({
     required this.feature,

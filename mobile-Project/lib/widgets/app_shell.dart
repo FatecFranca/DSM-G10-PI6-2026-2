@@ -7,8 +7,6 @@ import '../state/auth_state.dart';
 import '../state/i18n_state.dart';
 import '../state/theme_state.dart';
 
-/// Item da navegação principal — mesmos destinos e mesma ordem da barra
-/// lateral da Web.
 class _NavItem {
   const _NavItem(this.route, this.labelKey, this.icon, {this.exact = false});
 
@@ -31,12 +29,6 @@ const _adminItems = [
   _NavItem('/admin/institutions', 'nav.institutions', Icons.apartment_outlined),
 ];
 
-/// Estrutura de tela autenticada.
-///
-/// A barra lateral da Web vira **gaveta** aqui — que é exatamente o que o
-/// próprio `global.css` faz abaixo de 1024px (`.sidebar` com
-/// `transform: translateX(-100%)` até receber `.sidebar--open`). A gaveta
-/// mantém a paleta escura nos dois temas, como na Web.
 class AppScaffold extends StatelessWidget {
   const AppScaffold({
     super.key,
@@ -53,8 +45,6 @@ class AppScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final Widget? floatingActionButton;
 
-  /// Habilita "puxar para atualizar" — gesto esperado em Mobile e sem
-  /// equivalente na Web.
   final Future<void> Function()? onRefresh;
 
   final Widget child;
@@ -100,7 +90,6 @@ class AppScaffold extends StatelessWidget {
   }
 }
 
-/// `.topbar` — alternância de tema, idioma e identificação do usuário.
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   const AppTopBar({super.key});
 
@@ -182,7 +171,6 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/// `.sidebar` — marca, navegação por papel e rodapé.
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
@@ -345,7 +333,6 @@ class _DrawerLink extends StatelessWidget {
   }
 }
 
-/// `.sidebar__logo` / `.auth__brand-logo`.
 class _BrandMark extends StatelessWidget {
   const _BrandMark({required this.size, required this.fontSize});
 
@@ -372,7 +359,6 @@ class _BrandMark extends StatelessWidget {
       );
 }
 
-/// `.page-header` — título, subtítulo e ações da tela.
 class PageHeader extends StatelessWidget {
   const PageHeader({super.key, required this.title, this.subtitle, this.actions});
 
@@ -414,10 +400,6 @@ class PageHeader extends StatelessWidget {
   }
 }
 
-/// Estrutura das telas de autenticação (`.auth`).
-///
-/// A Web esconde o painel de marca abaixo de 860px e mostra a marca compacta
-/// (`.auth__mobile-brand`) — é esse o layout reproduzido aqui.
 class AuthScaffold extends StatelessWidget {
   const AuthScaffold({
     super.key,

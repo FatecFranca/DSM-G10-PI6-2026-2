@@ -14,16 +14,9 @@ import 'state/auth_state.dart';
 import 'state/i18n_state.dart';
 import 'state/theme_state.dart';
 
-/// Aplicativo Mobile da Plataforma de Acompanhamento Educacional.
-///
-/// Interface móvel da mesma plataforma que a Web: consome o **mesmo**
-/// `backend-Project`, com os mesmos contratos de API e a mesma regra de negócio.
-/// Nada de classificação embarcada, nada de acesso direto ao banco, nada de
-/// endpoint exclusivo do Mobile.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Carrega os símbolos de data dos três idiomas antes de qualquer formatação.
   for (final locale in AppLocale.values) {
     await initializeDateFormatting(locale.intlCode);
   }
@@ -35,7 +28,6 @@ Future<void> main() async {
   await Future.wait([i18n.load(), theme.load()]);
 
   final auth = AuthState(api);
-  // A sessão é restaurada em segundo plano; o roteador espera em `auth.loading`.
   unawaited(auth.restore());
 
   runApp(
@@ -77,8 +69,6 @@ class _PaeAppState extends State<PaeApp> {
       darkTheme: buildAppTheme(Brightness.dark),
       locale: i18n.locale.flutterLocale,
       supportedLocales: [for (final locale in AppLocale.values) locale.flutterLocale],
-      // Traduz os widgets do próprio Flutter (seletor de data, campos de texto,
-      // rótulos de acessibilidade) para o idioma escolhido.
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

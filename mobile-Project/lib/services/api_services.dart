@@ -9,12 +9,6 @@ import '../models/follow_up.dart';
 import '../models/student.dart';
 import '../models/user.dart';
 
-/// Serviços de API, um por área funcional — espelho de
-/// `frontend-Project/src/services/index.ts`.
-///
-/// Toda rede do aplicativo passa por aqui. Nenhuma tela monta URL, e não
-/// existe endpoint paralelo para o Mobile: os contratos são os mesmos
-/// consumidos por Web e Desktop (seção 6 e seção 13 do `.IA/CONTEXT.md`).
 class AuthService {
   const AuthService(this._api);
   final ApiClient _api;
@@ -23,7 +17,7 @@ class AuthService {
     final json = await _api.post<Map<String, dynamic>>(
       '/auth/login',
       {'email': email, 'password': password},
-      true, // skipAuthRedirect: 401 aqui é credencial errada, não sessão expirada
+      true,
     );
     return LoginResponse.fromJson(json);
   }
@@ -111,31 +105,22 @@ class AnalysesService {
   Future<AnalysisResult> get(String id) async =>
       AnalysisResult.fromJson(await _api.get<Map<String, dynamic>>('/analyses/$id'));
 
-  Future<AnalysisResult> runForStudent(String studentId, {bool includeClustering = true}) async =>
+  Future<AnalysisResult> runForStudent(String studentId) async =>
       AnalysisResult.fromJson(await _api.post<Map<String, dynamic>>(
         '/analyses/student/$studentId',
-        {'includeClustering': includeClustering},
+        const <String, dynamic>{},
       ));
 
-  /// Preferível a N chamadas unitárias: cada requisição ao `backend-MD` paga o
-  /// custo de subir o interpretador Python uma vez, não uma vez por estudante.
-  Future<BatchAnalysisResponse> runBatch(
-    List<String> studentIds, {
-    bool includeClustering = true,
-  }) async =>
+  Future<BatchAnalysisResponse> runBatch(List<String> studentIds) async =>
       BatchAnalysisResponse.fromJson(await _api.post<Map<String, dynamic>>(
         '/analyses/batch',
-        {'studentIds': studentIds, 'includeClustering': includeClustering},
+        {'studentIds': studentIds},
       ));
 
-  /// Classifica sem persistir — nada entra no histórico.
-  Future<AnalysisResult> simulate(
-    Map<String, double> features, {
-    bool includeClustering = true,
-  }) async =>
+  Future<AnalysisResult> simulate(Map<String, double> features) async =>
       AnalysisResult.fromJson(await _api.post<Map<String, dynamic>>(
         '/analyses/simulate',
-        {'features': features, 'includeClustering': includeClustering},
+        {'features': features},
       ));
 }
 
@@ -206,17 +191,8 @@ class DataMiningService {
   const DataMiningService(this._api);
   final ApiClient _api;
 
-  Future<ClusterProfilesResponse> profiles() async => ClusterProfilesResponse.fromJson(
-        await _api.get<Map<String, dynamic>>('/datamining/profiles'),
-      );
-
   Future<ModelProcessResponse> model() async => ModelProcessResponse.fromJson(
         await _api.get<Map<String, dynamic>>('/datamining/model'),
-      );
-
-  Future<ClusterDistributionResponse> clusterDistribution() async =>
-      ClusterDistributionResponse.fromJson(
-        await _api.get<Map<String, dynamic>>('/datamining/cluster-distribution'),
       );
 }
 
@@ -277,7 +253,6 @@ class InstitutionsService {
   Future<void> deactivate(String id) => _api.delete<void>('/institutions/$id');
 }
 
-/// Ponto único de acesso aos serviços, injetado por Provider.
 class Api {
   Api(this.client)
       : auth = AuthService(client),

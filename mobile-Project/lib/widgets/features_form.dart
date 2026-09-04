@@ -6,15 +6,6 @@ import '../models/feature_contract.dart';
 import '../state/i18n_state.dart';
 import 'ui.dart';
 
-/// Formulário dos atributos do modelo — equivalente a
-/// `frontend-Project/src/components/FeaturesForm.tsx`.
-///
-/// **Ele não conhece as 36 colunas.** É gerado a partir do contrato devolvido
-/// por `GET /api/students/feature-contract`, que repassa o contrato do
-/// `backend-MD`. Se o modelo for retreinado com outro conjunto de atributos, a
-/// tela acompanha sozinha.
-
-/// Campos de nota que aceitam alternância de escala.
 const _gradeScaleFields = {
   'curricular_units_1st_sem_grade',
   'curricular_units_2nd_sem_grade',
@@ -22,8 +13,6 @@ const _gradeScaleFields = {
   'admission_grade',
 };
 
-/// Agrupamento visual em cinco blocos — a mesma divisão da Web. É organização
-/// de tela: o modelo trata as 36 variáveis juntas, sem "blocos".
 const _groups = <({String id, String titleKey, List<String> names, String? contains})>[
   (id: 'academic1', titleKey: 'students.featureGroups.academic1', names: [], contains: '1st_sem'),
   (id: 'academic2', titleKey: 'students.featureGroups.academic2', names: [], contains: '2nd_sem'),
@@ -62,13 +51,11 @@ const _groups = <({String id, String titleKey, List<String> names, String? conta
     ],
     contains: null,
   ),
-  // Bloco "pega o que sobrou", como o `match: () => true` da Web.
   (id: 'macro', titleKey: 'students.featureGroups.macro', names: [], contains: null),
 ];
 
 double _round2(double value) => (value * 100).round() / 100;
 
-/// Valores iniciais: o que já estiver salvo, ou vazio.
 Map<String, double?> initialFeatureValues(
   List<FeatureSpec> features,
   Map<String, double>? saved,
@@ -76,7 +63,6 @@ Map<String, double?> initialFeatureValues(
   return {for (final feature in features) feature.name: saved?[feature.name]};
 }
 
-/// Preenche apenas o que estiver vazio com a média observada no treino.
 Map<String, double?> fillWithMeans(
   List<FeatureSpec> features,
   Map<String, double?> values,
@@ -91,7 +77,6 @@ Map<String, double?> fillWithMeans(
   return filled;
 }
 
-/// Descarta os vazios e devolve o mapa enviado à API.
 Map<String, double> toFeaturePayload(Map<String, double?> values) {
   final payload = <String, double>{};
   values.forEach((name, value) {
@@ -100,7 +85,6 @@ Map<String, double> toFeaturePayload(Map<String, double?> values) {
   return payload;
 }
 
-/// Algum valor fora dos limites rígidos aceitos pelo Back-End.
 bool hasOutOfBoundsValues(List<FeatureSpec> features, Map<String, double?> values) {
   return features.any((feature) {
     final value = values[feature.name];
@@ -130,9 +114,6 @@ class FeaturesForm extends StatefulWidget {
   final bool disabled;
   final Map<String, String> fieldErrors;
 
-  /// Incrementado pelo pai quando os valores mudam por fora da digitação
-  /// (preencher com médias, limpar, carregar um estudante). É o sinal para
-  /// reescrever o texto dos campos.
   final int revision;
 
   @override
@@ -142,7 +123,6 @@ class FeaturesForm extends StatefulWidget {
 class _FeaturesFormState extends State<FeaturesForm> {
   final Map<String, TextEditingController> _controllers = {};
 
-  /// `pt`: escala portuguesa do dataset (0–20 / 0–200). `br`: escala 0–10.
   String _gradeScale = 'pt';
 
   @override
@@ -180,10 +160,6 @@ class _FeaturesFormState extends State<FeaturesForm> {
     }
   }
 
-  /// Fator de conversão entre a escala exibida e a escala canônica.
-  ///
-  /// O valor guardado é **sempre** o da escala portuguesa — é ela que vai para
-  /// a validação de limites e para a análise.
   double _factor(FeatureSpec feature) =>
       _gradeScaleFields.contains(feature.name) && _gradeScale == 'br'
           ? feature.hardMax / 10
@@ -333,8 +309,6 @@ class _FeatureField extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.i18n;
 
-    // Fora da faixa observada no treino: o modelo extrapola e a confiança ali é
-    // menos confiável. Fora dos limites rígidos: o Back-End recusa.
     final outOfRange = value != null && (value! < feature.min || value! > feature.max);
     final outOfBounds =
         value != null && (value! < feature.hardMin || value! > feature.hardMax);
@@ -346,8 +320,6 @@ class _FeatureField extends StatelessWidget {
           })
         : null;
 
-    // A Web mostra "0 ou 1" fixo em português; aqui a dica é neutra de idioma,
-    // já que o app roda em três locales.
     final hint = feature.isBinary
         ? '0 / 1'
         : convertsToBr

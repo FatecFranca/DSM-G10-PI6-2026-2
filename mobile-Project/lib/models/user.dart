@@ -1,7 +1,6 @@
 import 'common.dart';
 import 'enums.dart';
 
-/// Usuário autenticado (`GET /api/auth/me`, `GET /api/users`).
 class User {
   const User({
     required this.id,
@@ -37,8 +36,6 @@ class User {
         institution: NamedRef.fromJson(json['institution']),
       );
 
-  /// Iniciais para o avatar, com a mesma regra da Web: primeira letra do
-  /// primeiro e do último nome.
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
     if (parts.isEmpty) return '—';
@@ -61,10 +58,6 @@ class LoginResponse {
       );
 }
 
-/// Permissões derivadas do papel — mesma tabela do `AuthContext` da Web.
-///
-/// Isto é **experiência de uso**: a autorização real está no Back-End, que
-/// recusaria a requisição de todo jeito (seção 6, item 3 do `.IA/CONTEXT.md`).
 class Permissions {
   const Permissions(this.role);
 
@@ -81,7 +74,6 @@ class Permissions {
   bool get seeAllInstitutions => _isAdmin;
 }
 
-/// Instituição atendida (`GET /api/institutions`).
 class Institution {
   const Institution({
     required this.id,

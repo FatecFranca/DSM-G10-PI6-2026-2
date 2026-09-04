@@ -1,10 +1,3 @@
-/// Enumerações do contrato da API principal, espelhando
-/// `frontend-Project/src/types/api.ts`.
-///
-/// Cada valor carrega o texto exato usado pela API (`api`), que também é a
-/// chave de tradução (`classification.Dropout`, `priority.HIGH`, ...). Nunca
-/// derive esses textos do `name` do enum: `attention.média` tem acento e
-/// `followUpStatus.IN_PROGRESS` tem sublinhado.
 enum Role {
   admin('ADMIN'),
   analyst('ANALYST'),
@@ -69,26 +62,6 @@ enum FollowUpStatus {
       };
 }
 
-/// Nível de atenção de um perfil de agrupamento. Os valores vêm acentuados do
-/// `backend-MD` e são usados como chave de tradução (`attention.média`).
-enum AttentionLevel {
-  baixa('baixa'),
-  media('média'),
-  alta('alta');
-
-  const AttentionLevel(this.api);
-  final String api;
-
-  static AttentionLevel? fromApi(String? value) => switch (value) {
-        'baixa' => AttentionLevel.baixa,
-        'média' => AttentionLevel.media,
-        'alta' => AttentionLevel.alta,
-        _ => null,
-      };
-}
-
-/// Conversores tolerantes: a API é a fonte da verdade, mas um campo ausente ou
-/// com tipo inesperado não deve derrubar a tela.
 abstract final class Json {
   static String str(Object? value, [String fallback = '']) =>
       value is String ? value : fallback;
@@ -142,8 +115,6 @@ abstract final class Json {
   static List<String> strings(Object? value) =>
       value is List ? value.whereType<String>().toList() : const [];
 
-  /// Mapa `nome -> número`, usado por `features`, `probabilities` e
-  /// `featureMeans`.
   static Map<String, double> numbers(Object? value) {
     if (value is! Map) return {};
     final result = <String, double>{};

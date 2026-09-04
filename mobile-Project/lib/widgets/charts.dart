@@ -5,13 +5,6 @@ import 'package:flutter/material.dart';
 import '../core/theme.dart';
 import '../state/i18n_state.dart';
 
-/// Gráficos próprios, sem biblioteca externa — mesma decisão do
-/// `frontend-Project`, que desenha rosca, barras e série temporal em SVG puro.
-/// Aqui o equivalente é `CustomPainter`.
-///
-/// Os gráficos existem para responder pergunta do domínio, não para enfeitar
-/// (seção 10 do `.IA/CONTEXT.md` do Front-End Web).
-
 class ChartSlice {
   const ChartSlice({required this.label, required this.value, required this.color});
 
@@ -20,7 +13,6 @@ class ChartSlice {
   final Color color;
 }
 
-/// Rosca com o total no centro e legenda embaixo.
 class DonutChart extends StatelessWidget {
   const DonutChart({
     super.key,
@@ -176,17 +168,11 @@ class BarItem {
   final double value;
   final Color? color;
 
-  /// Texto à direita da barra; quando ausente, mostra o valor formatado.
   final String? display;
 
-  /// Linha auxiliar sob o rótulo (equivalente ao `title` do SVG).
   final String? note;
 }
 
-/// `.bars` — lista de barras horizontais.
-///
-/// No celular o rótulo fica **acima** da barra em vez de ao lado: a coluna de
-/// 90–200px da Web não cabe em 360dp sem truncar nomes de atributo.
 class BarList extends StatelessWidget {
   const BarList({super.key, required this.items, this.max});
 
@@ -264,8 +250,6 @@ class SeriesConfig {
   final List<int> values;
 }
 
-/// Série temporal em barras agrupadas, com rolagem horizontal — a mesma saída
-/// do `GroupedBarChart` da Web, que também rola quando há muitos períodos.
 class GroupedBarChart extends StatelessWidget {
   const GroupedBarChart({
     super.key,

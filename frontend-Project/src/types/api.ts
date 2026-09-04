@@ -2,7 +2,6 @@ export type Role = 'ADMIN' | 'ANALYST' | 'VIEWER';
 export type Classification = 'Dropout' | 'Enrolled' | 'Graduate';
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
 export type FollowUpStatus = 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
-export type AttentionLevel = 'baixa' | 'média' | 'alta';
 
 export interface ApiErrorBody {
   error: string;
@@ -131,17 +130,7 @@ export interface Recommendation {
     confidence: number | null;
     confidenceThreshold: number;
     confidentSignal: boolean;
-    clusterAttentionLevel: AttentionLevel | null;
-    escalatedByCluster: boolean;
   };
-}
-
-export interface ClusterProfileSummary {
-  size?: number;
-  ratio?: number;
-  dropoutRatio?: number;
-  classDistribution?: Record<string, { count: number; ratio: number }>;
-  featureMeans?: Record<string, number>;
 }
 
 export interface AnalysisResult {
@@ -155,15 +144,6 @@ export interface AnalysisResult {
     probabilities: Record<string, number> | null;
   };
   recommendation: Recommendation;
-  cluster:
-    | ({
-        clusterId: number;
-        clusterVersion: string;
-        attentionLevel: AttentionLevel | null;
-        distance?: number;
-        profile?: ClusterProfileSummary;
-      })
-    | null;
   model: { version: string; algorithm: string };
   student?: { id: string; name: string };
   warnings?: OutOfRangeWarning[];
@@ -180,8 +160,6 @@ export interface AnalysisRecord {
   priority: Priority;
   modelVersion: string;
   algorithm: string;
-  clusterId: number | null;
-  attentionLevel: AttentionLevel | null;
   createdAt: string;
   student?: { id: string; code: string; name: string };
   requestedBy?: { id: string; name: string } | null;
@@ -264,47 +242,6 @@ export interface Timeline {
   series: TimelinePoint[];
 }
 
-export interface ClusterProfile {
-  clusterId: number;
-  size: number;
-  ratio: number;
-  dropoutRatio: number;
-  attentionLevel: AttentionLevel;
-  classDistribution: Record<string, { count: number; ratio: number }>;
-  featureMeans: Record<string, number>;
-}
-
-export interface ClusterProfilesResponse {
-  clustering: {
-    version: string;
-    algorithm: string;
-    k: number;
-    silhouette: number;
-    trainedAt: string;
-  };
-  selectionRationale: string;
-  metrics: Record<string, unknown>;
-  profileFeatures: string[];
-  profiles: ClusterProfile[];
-  disclaimer: string;
-}
-
-export interface ClusterDistributionResponse {
-  clustering: ClusterProfilesResponse['clustering'];
-  totalAnalysesWithCluster: number;
-  distribution: {
-    clusterId: number;
-    attentionLevel: AttentionLevel;
-    dropoutRatio: number;
-    trainingSize: number;
-    trainingRatio: number;
-    localCount: number;
-    localRatio: number;
-    featureMeans: Record<string, number>;
-  }[];
-  disclaimer: string;
-}
-
 export interface FeatureImportanceItem {
   feature: string;
   importance: number;
@@ -336,10 +273,16 @@ export interface ModelProcessResponse {
     evaluation: {
       test_accuracy: number;
       test_f1_macro: number;
-      train_accuracy: number;
+      test_recall_dropout: number;
+      test_balanced_accuracy: number;
+      dev_accuracy: number;
+      generalization_gap: number;
       overfit_gap: number;
       cv_folds: number;
       cv_accuracy_mean: number;
+      cv_f1_macro_mean: number;
+      cv_recall_dropout_mean: number;
+      cv_selection_score: number;
       confusion_matrix: { labels: string[]; matrix: number[][] };
       classification_report: Record<string, unknown>;
     };

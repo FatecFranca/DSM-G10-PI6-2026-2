@@ -11,20 +11,8 @@ import '../widgets/async_builder.dart';
 import '../widgets/charts.dart';
 import '../widgets/ui.dart';
 
-/// Mineração de Dados: perfis descobertos e o processo do modelo em uso.
-///
-/// É aqui que a plataforma demonstra as etapas exigidas pela disciplina —
-/// entendimento dos dados, preparação, seleção de atributos, treinamento,
-/// seleção do modelo e avaliação.
-class DataMiningPage extends StatefulWidget {
+class DataMiningPage extends StatelessWidget {
   const DataMiningPage({super.key});
-
-  @override
-  State<DataMiningPage> createState() => _DataMiningPageState();
-}
-
-class _DataMiningPageState extends State<DataMiningPage> {
-  int _tab = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -33,246 +21,15 @@ class _DataMiningPageState extends State<DataMiningPage> {
     return AppScaffold(
       title: t.t('dataMining.title'),
       subtitle: t.t('dataMining.subtitle'),
-      child: AppStack(
-        children: [
-          AppTabs(
-            labels: [t.t('dataMining.profiles'), t.t('dataMining.modelProcess')],
-            active: _tab,
-            onChange: (index) => setState(() => _tab = index),
-          ),
-          _tab == 0 ? const _ProfilesTab() : const _ModelTab(),
-        ],
+      child: const AppStack(
+        children: [_ModelProcess()],
       ),
     );
   }
 }
 
-class _ProfilesTab extends StatelessWidget {
-  const _ProfilesTab();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final t = context.i18n;
-    final api = context.read<Api>();
-
-    return AsyncBuilder<
-        ({ClusterProfilesResponse profiles, ClusterDistributionResponse? local})>(
-      load: () async {
-        final profiles = await api.dataMining.profiles();
-        ClusterDistributionResponse? local;
-        try {
-          local = await api.dataMining.clusterDistribution();
-        } catch (_) {
-          // A distribuição local é complementar: se falhar, os perfis do treino
-          // ainda valem a tela.
-          local = null;
-        }
-        return (profiles: profiles, local: local);
-      },
-      builder: (context, data) {
-        final clustering = data.profiles.clustering;
-        final local = data.local;
-
-        return AppStack(
-          children: [
-            AppAlert(message: t.t('dataMining.profilesHint')),
-
-            StatGrid(
-              children: [
-                StatCard(
-                  label: t.t('dataMining.algorithm'),
-                  value: clustering.algorithm,
-                  tone: StatTone.accent,
-                ),
-                StatCard(
-                  label: t.t('dataMining.groups'),
-                  value: t.formatNumber(clustering.k),
-                ),
-                StatCard(
-                  label: t.t('dataMining.silhouette'),
-                  value: t.formatNumber(clustering.silhouette, maximumFractionDigits: 4),
-                ),
-                StatCard(
-                  label: t.t('dataMining.localCount'),
-                  value: t.formatNumber(local?.totalAnalysesWithCluster ?? 0),
-                  meta: t.t('dataMining.localDistributionHint'),
-                ),
-              ],
-            ),
-
-            AppCard(
-              title: t.t('dataMining.selectionRationale'),
-              child: Text(
-                data.profiles.selectionRationale,
-                style: TextStyle(fontSize: AppSizes.fontSmall, height: 1.55, color: colors.text),
-              ),
-            ),
-
-            if (local != null && local.distribution.isNotEmpty)
-              AppCard(
-                title: t.t('dataMining.localDistribution'),
-                hint: t.t('dataMining.localDistributionHint'),
-                child: BarList(
-                  max: local.totalAnalysesWithCluster.toDouble(),
-                  items: [
-                    for (final entry in local.distribution)
-                      BarItem(
-                        label: '${t.t('dataMining.group')} ${entry.clusterId}',
-                        value: entry.localCount.toDouble(),
-                        color: attentionColor(context, entry.attentionLevel),
-                        display: '${t.formatNumber(entry.localCount)} · '
-                            '${t.formatPercent(entry.localRatio, 1)}',
-                        note: '${t.t('dataMining.dropoutRate')}: '
-                            '${t.formatPercent(entry.dropoutRatio, 1)}',
-                      ),
-                  ],
-                ),
-              ),
-
-            for (final profile in data.profiles.profiles)
-              _ProfileCard(
-                profile: profile,
-                localCount: local?.distribution
-                    .where((entry) => entry.clusterId == profile.clusterId)
-                    .firstOrNull
-                    ?.localCount,
-              ),
-
-            Disclaimer(text: data.profiles.disclaimer),
-          ],
-        );
-      },
-      loadingBuilder: (_) => const LoadingState(),
-    );
-  }
-}
-
-class _ProfileCard extends StatefulWidget {
-  const _ProfileCard({required this.profile, required this.localCount});
-
-  final ClusterProfile profile;
-  final int? localCount;
-
-  @override
-  State<_ProfileCard> createState() => _ProfileCardState();
-}
-
-class _ProfileCardState extends State<_ProfileCard> {
-  bool _meansOpen = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final t = context.i18n;
-    final profile = widget.profile;
-
-    // Mesma escala de cor da Web: >= 50% vermelho, >= 25% amarelo, senão verde.
-    final dropoutColor = profile.dropoutRatio >= 0.5
-        ? colors.danger
-        : profile.dropoutRatio >= 0.25
-            ? colors.warning
-            : colors.success;
-
-    return AppCard(
-      title: '${t.t('dataMining.group')} ${profile.clusterId}',
-      actions: [AttentionBadge(value: profile.attentionLevel)],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          DefinitionList(
-            items: [
-              (
-                term: t.t('dataMining.groupSize'),
-                value: DefinitionValue(t.formatNumber(profile.size)),
-              ),
-              (
-                term: t.t('dataMining.groupShare'),
-                value: DefinitionValue(t.formatPercent(profile.ratio, 1)),
-              ),
-              (
-                term: t.t('dataMining.dropoutRate'),
-                value: Text(
-                  t.formatPercent(profile.dropoutRatio, 1),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: dropoutColor,
-                  ),
-                ),
-              ),
-              if (widget.localCount != null)
-                (
-                  term: t.t('dataMining.localCount'),
-                  value: DefinitionValue(t.formatNumber(widget.localCount!)),
-                ),
-            ],
-          ),
-          Text(
-            t.t('dataMining.classDistribution').toUpperCase(),
-            style: TextStyle(
-              fontSize: AppSizes.fontLabel,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-              color: colors.textMuted,
-            ),
-          ),
-          const SizedBox(height: 10),
-          DonutChart(
-            size: 148,
-            caption: t.t('dataMining.groupSize'),
-            slices: [
-              for (final entry in profile.classDistribution.entries)
-                ChartSlice(
-                  label: t.t('classification.${entry.key}'),
-                  value: entry.value.count.toDouble(),
-                  color: Classification.fromApi(entry.key) == null
-                      ? colors.brand
-                      : classificationColor(context, Classification.fromApi(entry.key)!),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          InkWell(
-            onTap: () => setState(() => _meansOpen = !_meansOpen),
-            child: Row(
-              children: [
-                Icon(
-                  _meansOpen ? Icons.expand_less : Icons.expand_more,
-                  size: 18,
-                  color: colors.textMuted,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  t.t('dataMining.featureMeans'),
-                  style: TextStyle(fontSize: AppSizes.fontSmall, color: colors.textMuted),
-                ),
-              ],
-            ),
-          ),
-          if (_meansOpen)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: DefinitionList(
-                items: [
-                  for (final entry in profile.featureMeans.entries)
-                    (
-                      term: entry.key,
-                      value: DefinitionValue(
-                        t.formatNumber(entry.value, maximumFractionDigits: 2),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ModelTab extends StatelessWidget {
-  const _ModelTab();
+class _ModelProcess extends StatelessWidget {
+  const _ModelProcess();
 
   @override
   Widget build(BuildContext context) {
@@ -306,10 +63,16 @@ class _ModelTab extends StatelessWidget {
                   value: t.formatNumber(model.testF1Macro, maximumFractionDigits: 4),
                 ),
                 StatCard(
+                  label: t.t('dataMining.recallDropout'),
+                  value: t.formatPercent(model.testRecallDropout, 1),
+                  meta: t.t('dataMining.recallDropoutHint'),
+                  tone: StatTone.accent,
+                ),
+                StatCard(
                   label: t.t('dataMining.overfitGap'),
                   value: t.formatNumber(model.overfitGap, maximumFractionDigits: 4),
-                  meta: '${t.t('dataMining.trainAccuracy')}: '
-                      '${t.formatPercent(model.trainAccuracy, 1)}',
+                  meta: '${t.t('dataMining.devAccuracy')}: '
+                      '${t.formatPercent(model.devAccuracy, 1)}',
                   tone: model.overfitGap > 0.1 ? StatTone.warning : StatTone.success,
                 ),
               ],
@@ -454,10 +217,6 @@ class _ModelTab extends StatelessWidget {
   }
 }
 
-/// Uma linha da tabela de algoritmos comparados.
-///
-/// Na Web são seis colunas numéricas; aqui viram pares rótulo/valor em duas
-/// colunas, que é o que cabe em um celular sem rolagem horizontal.
 class _CandidateTile extends StatelessWidget {
   const _CandidateTile({required this.candidate, required this.chosen});
 
@@ -516,14 +275,14 @@ class _CandidateTile extends StatelessWidget {
           Row(
             children: [
               Expanded(child: metric(t.t('dataMining.cvAccuracy'), candidate.cvAccuracyMean)),
-              Expanded(child: metric(t.t('dataMining.testF1'), candidate.testF1Macro)),
+              Expanded(child: metric(t.t('dataMining.cvF1'), candidate.cvF1MacroMean)),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: metric(t.t('dataMining.trainAccuracy'), candidate.trainAccuracy)),
-              Expanded(child: metric(t.t('dataMining.testAccuracy'), candidate.testAccuracy)),
+              Expanded(child: metric(t.t('dataMining.recallDropout'), candidate.cvRecallDropoutMean)),
+              Expanded(child: metric(t.t('dataMining.selectionScore'), candidate.cvSelectionScore)),
             ],
           ),
           const SizedBox(height: 8),

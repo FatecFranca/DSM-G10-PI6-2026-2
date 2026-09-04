@@ -69,7 +69,7 @@ router.get('/feature-contract', async (req, res, next) => {
  *     parameters:
  *       - { in: query, name: page,  schema: { type: integer, default: 1 } }
  *       - { in: query, name: limit, schema: { type: integer, default: 20, maximum: 100 } }
- *       - { in: query, name: search, schema: { type: string }, description: Nome, código ou e-mail }
+ *       - { in: query, name: search, schema: { type: string }, description: "Nome, código ou e-mail" }
  *       - { in: query, name: classification, schema: { type: string, enum: [Dropout, Enrolled, Graduate] } }
  *       - { in: query, name: priority, schema: { type: string, enum: [LOW, MEDIUM, HIGH] } }
  *       - { in: query, name: institutionId, schema: { type: string }, description: Apenas para ADMIN }

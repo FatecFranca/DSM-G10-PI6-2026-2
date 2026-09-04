@@ -1,6 +1,5 @@
 import 'enums.dart';
 
-/// Página de resultados devolvida pelas listagens da API principal.
 class Paginated<T> {
   const Paginated({required this.data, required this.pagination});
 
@@ -47,8 +46,6 @@ class PageInfo {
       );
 }
 
-/// Referência enxuta a outra entidade (`{ id, name }`), como vem embutida em
-/// `student.institution`, `analysis.requestedBy` e afins.
 class NamedRef {
   const NamedRef({required this.id, required this.name, this.extra});
 
@@ -67,7 +64,6 @@ class NamedRef {
   }
 }
 
-/// Item de uma distribuição (classificação, prioridade, situação).
 class DistributionItem {
   const DistributionItem({required this.value, required this.count, required this.ratio});
 

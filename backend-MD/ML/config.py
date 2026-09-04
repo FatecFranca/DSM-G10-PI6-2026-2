@@ -22,9 +22,6 @@ SCALER_FILE = ARTIFACTS_DIR / "scaler.pkl"
 MODEL_FILE = ARTIFACTS_DIR / "model.pkl"
 MODEL_METADATA_FILE = ARTIFACTS_DIR / "model_metadata.json"
 
-CLUSTER_MODEL_FILE = ARTIFACTS_DIR / "cluster_model.pkl"
-CLUSTER_METADATA_FILE = ARTIFACTS_DIR / "cluster_metadata.json"
-
 CSV_SEPARATOR = ";"
 CSV_ENCODING = "utf-8-sig"
 

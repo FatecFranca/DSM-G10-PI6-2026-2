@@ -16,7 +16,6 @@ const VENV_PYTHON = path.join(
 );
 const MODEL_FILE = path.join(ML_DIR, 'artifacts', 'model.pkl');
 const SCALER_FILE = path.join(ML_DIR, 'artifacts', 'scaler.pkl');
-const CLUSTER_FILE = path.join(ML_DIR, 'artifacts', 'cluster_model.pkl');
 const METADATA_FILE = path.join(ML_DIR, 'artifacts', 'model_metadata.json');
 
 const log = (message) => console.log(`[setup] ${message}`);
@@ -132,20 +131,6 @@ if (existsSync(VENV_PYTHON)) {
 
     if (!trained) {
       warn('não foi possível treinar o modelo automaticamente. Rode "npm run ml:pipeline" manualmente.');
-    }
-  }
-
-  const clusterReady = existsSync(CLUSTER_FILE);
-  if (clusterReady) {
-    log('agrupamento já treinado (ML/artifacts/cluster_model.pkl) — pulando.');
-  } else if (existsSync(SCALER_FILE)) {
-    log('treinando o agrupamento (análise complementar)...');
-    const clustered = run(VENV_PYTHON, ['-u', path.join(ML_DIR, 'train_clusters.py')], {
-      cwd: ML_DIR,
-      shell: false,
-    });
-    if (!clustered) {
-      warn('não foi possível treinar o agrupamento automaticamente. Rode "npm run ml:cluster" manualmente.');
     }
   }
 

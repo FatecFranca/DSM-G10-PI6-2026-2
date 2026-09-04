@@ -4,11 +4,6 @@ import 'enums.dart';
 import 'feature_contract.dart';
 import 'follow_up.dart';
 
-/// Estudante na listagem (`GET /api/students`).
-///
-/// Os campos `last*` são o resumo desnormalizado gravado pelo `backend-Project`
-/// na mesma transação da análise — é o que permite listar sem varrer o
-/// histórico.
 class StudentSummary {
   const StudentSummary({
     required this.id,
@@ -57,8 +52,6 @@ class StudentSummary {
       );
 }
 
-/// Detalhe do estudante (`GET /api/students/{id}`), com atributos, histórico de
-/// análises e acompanhamentos.
 class Student extends StudentSummary {
   const Student({
     required super.id,

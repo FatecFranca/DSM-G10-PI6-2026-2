@@ -17,7 +17,6 @@ import '../widgets/features_form.dart';
 import '../widgets/ui.dart';
 import 'dashboard_page.dart' show ListRowTile;
 
-/// Análise: simulação da classificação e histórico das análises registradas.
 class AnalysisPage extends StatefulWidget {
   const AnalysisPage({super.key});
 
@@ -358,7 +357,6 @@ class _HistoryTabState extends State<_HistoryTab> {
               classification: _classification.isEmpty ? null : _classification,
               priority: _priority.isEmpty ? null : _priority,
               from: _from,
-              // O filtro "até" inclui o dia inteiro, como na Web (`T23:59:59`).
               to: _to == null
                   ? null
                   : DateTime(_to!.year, _to!.month, _to!.day, 23, 59, 59),
@@ -383,8 +381,6 @@ class _HistoryTabState extends State<_HistoryTab> {
                       subtitle: [
                         t.formatDate(analysis.createdAt, withTime: true),
                         analysis.algorithm,
-                        if (analysis.clusterId != null)
-                          '${t.t('analysis.clusterId')} ${analysis.clusterId}',
                         if (analysis.requestedBy != null)
                           '${t.t('analysis.requestedBy')}: ${analysis.requestedBy!.name}',
                       ].join(' · '),

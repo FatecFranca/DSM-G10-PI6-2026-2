@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Tema claro/escuro, com a mesma preferência padrão da Web: **escuro**.
-///
-/// Guardado em `SharedPreferences` — é configuração simples, não dado sensível
-/// (seção 4 e seção 10 do `.IA/CONTEXT.md`).
 class ThemeState extends ChangeNotifier {
   static const _storageKey = 'pi6.theme';
 

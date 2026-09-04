@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Tokens de design portados de `frontend-Project/src/css/global.css`.
-///
-/// Os nomes seguem as variáveis CSS originais (`--surface-inset` -> [surfaceInset])
-/// para que qualquer ajuste visual na Web possa ser reproduzido aqui sem
-/// tradução mental. Nenhum valor foi "arredondado": são os mesmos hex.
 @immutable
 class AppColors extends ThemeExtension<AppColors> {
   const AppColors({
@@ -55,8 +50,6 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color info;
   final Color scrim;
 
-  // A barra lateral da Web mantém a mesma paleta escura nos dois temas: o bloco
-  // `:root[data-theme='light']` do global.css não redefine nenhum `--sidebar-*`.
   static const Color sidebarBg = Color(0xFF070B15);
   static const Color sidebarText = Color(0xFFC7CFE6);
   static const Color sidebarTextMuted = Color(0xFF7A86A8);
@@ -113,17 +106,13 @@ class AppColors extends ThemeExtension<AppColors> {
     scrim: Color(0x800F172A),
   );
 
-  /// Equivalente ao `color-mix(in srgb, <cor> <p>%, <base>)` do CSS.
   Color _mix(Color color, double percent, Color base) =>
       Color.lerp(base, color, percent)!;
 
-  /// Fundo suave de um selo/alerta: `color-mix(in srgb, X 16%, var(--surface))`.
   Color soft(Color color) => _mix(color, 0.16, surface);
 
-  /// Borda de um selo/alerta: `color-mix(in srgb, X 38%, var(--border))`.
   Color softBorder(Color color) => _mix(color, 0.38, border);
 
-  /// Texto de um selo/alerta: `color-mix(in srgb, X 75%, var(--text))`.
   Color softText(Color color) => _mix(color, 0.75, text);
 
   @override
@@ -136,11 +125,6 @@ class AppColors extends ThemeExtension<AppColors> {
   }
 }
 
-/// Raios, espaçamentos e tamanhos de fonte do `global.css`.
-///
-/// Os tamanhos de fonte usam os valores do breakpoint `max-width: 640px`
-/// (`body: 14.5px`, `page-header__title: 19px`, `stat__value: 23px`), que é a
-/// faixa em que um celular cai na Web.
 abstract final class AppSizes {
   static const double radiusSm = 6;
   static const double radius = 10;
@@ -154,7 +138,7 @@ abstract final class AppSizes {
   static const double fontBody = 14.5;
   static const double fontPageTitle = 19;
   static const double fontCardTitle = 14.5;
-  static const double fontStatValue = 23;
+  static const double fontStatValue = 20;
   static const double fontLabel = 11.5;
   static const double fontSmall = 12.5;
   static const double fontHint = 12;
@@ -282,7 +266,6 @@ ThemeData buildAppTheme(Brightness brightness) {
   );
 }
 
-/// Atalho para os tokens dentro de um `build`.
 extension AppColorsContext on BuildContext {
   AppColors get colors => Theme.of(this).extension<AppColors>()!;
 }

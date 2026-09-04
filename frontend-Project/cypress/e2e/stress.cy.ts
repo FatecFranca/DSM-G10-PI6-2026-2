@@ -6,9 +6,6 @@ const USER_COUNT = Math.max(1, Math.round(STUDENT_COUNT / 5))
 const FOLLOW_UP_COUNT = Math.max(1, Math.round(STUDENT_COUNT / 2))
 const INSTITUTION_COUNT = Math.max(1, Math.round(STUDENT_COUNT / 10))
 
-// Desativado por padrão para que "npm run test" (validação de fluxos) não
-// gere volume pesado sem querer. Ative com "npm run test:stress" (ou
-// "cypress run --env stress=true,stressCount=100").
 ;(STRESS_ENABLED ? describe : describe.skip)('Stress: geração de dados aleatórios', () => {
   const institutionIds: string[] = []
   const studentIds: string[] = []
@@ -34,8 +31,6 @@ const INSTITUTION_COUNT = Math.max(1, Math.round(STUDENT_COUNT / 10))
         cy.then(() => Cypress._.sample(institutionIds)).then((institutionId) => {
           cy.apiCreateStudent(institutionId as string).then((student) => {
             studentIds.push(student.id)
-            // Roda a análise real (via ML) para cada estudante criado — parte
-            // do "estresse" é também bater no serviço de IA em volume.
             cy.request({
               method: 'POST',
               url: `${Cypress.env('apiBaseUrl')}/analyses/student/${student.id}`,

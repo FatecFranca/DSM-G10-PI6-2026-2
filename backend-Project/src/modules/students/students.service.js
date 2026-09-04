@@ -86,8 +86,6 @@ export async function getStudent(id, user, { includeAnalyses = true } = {}) {
             priority: true,
             modelVersion: true,
             algorithm: true,
-            clusterId: true,
-            attentionLevel: true,
             createdAt: true,
             requestedBy: { select: { id: true, name: true } },
           },

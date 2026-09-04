@@ -11,8 +11,6 @@ void main() {
       expect(Classification.dropout.api, 'Dropout');
       expect(Priority.high.api, 'HIGH');
       expect(FollowUpStatus.inProgress.api, 'IN_PROGRESS');
-      // Acentuado de propósito: a chave de tradução é `attention.média`.
-      expect(AttentionLevel.media.api, 'média');
     });
 
     test('convertem valores desconhecidos sem quebrar', () {
@@ -50,7 +48,7 @@ void main() {
     expect(page.pagination.totalPages, 2);
   });
 
-  test('AnalysisResult lê classificação, prioridade e agrupamento', () {
+  test('AnalysisResult lê classificação e prioridade', () {
     final result = AnalysisResult.fromJson({
       'id': 'a1',
       'studentId': 's1',
@@ -64,13 +62,7 @@ void main() {
         'priority': 'HIGH',
         'label': 'Acompanhamento prioritário',
         'description': 'texto',
-        'factors': {'escalatedByCluster': true, 'clusterAttentionLevel': 'alta'},
-      },
-      'cluster': {
-        'clusterId': 2,
-        'clusterVersion': 'v1',
-        'attentionLevel': 'alta',
-        'profile': {'size': 842, 'dropoutRatio': 0.825},
+        'factors': {'confidentSignal': true},
       },
       'model': {'version': 'v1', 'algorithm': 'LinearDiscriminantAnalysis'},
       'disclaimer': 'apoio à decisão',
@@ -78,22 +70,18 @@ void main() {
 
     expect(result.classification, Classification.dropout);
     expect(result.recommendation.priority, Priority.high);
-    expect(result.recommendation.escalatedByCluster, isTrue);
-    expect(result.cluster!.attentionLevel, AttentionLevel.alta);
-    expect(result.cluster!.profileDropoutRatio, 0.825);
+    expect(result.recommendation.confidentSignal, isTrue);
     expect(result.probabilities.length, 3);
   });
 
-  test('análise sem agrupamento não quebra a leitura', () {
+  test('análise sem confiança não quebra a leitura', () {
     final result = AnalysisResult.fromJson({
       'analysis': {'classification': 'Graduate', 'classId': 2, 'confidence': null},
       'recommendation': {'priority': 'LOW', 'label': '', 'description': ''},
-      'cluster': null,
       'model': {'version': 'v1', 'algorithm': 'LDA'},
       'disclaimer': '',
     });
 
-    expect(result.cluster, isNull);
     expect(result.confidence, isNull);
     expect(result.probabilities, isEmpty);
   });

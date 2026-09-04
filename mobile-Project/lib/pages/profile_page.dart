@@ -10,11 +10,6 @@ import '../state/i18n_state.dart';
 import '../widgets/app_shell.dart';
 import '../widgets/ui.dart';
 
-/// Perfil do usuário: dados da conta, troca da própria senha e saída.
-///
-/// A Web expõe `POST /api/auth/change-password` pelo serviço, mas ainda não tem
-/// uma tela para isso. Aqui a ação ganha lugar próprio porque no celular não
-/// existe o menu de usuário da barra superior — o avatar leva a esta tela.
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -213,7 +208,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-/// Rota inexistente.
 class NotFoundPage extends StatelessWidget {
   const NotFoundPage({super.key});
 

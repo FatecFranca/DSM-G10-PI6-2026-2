@@ -1,30 +1,20 @@
-import { Link } from 'react-router-dom';
-
 import { useI18n } from '../state/I18nContext';
 import type { AnalysisResult, Classification } from '../types/api';
 import { BarList } from './charts';
 import {
   Alert,
-  AttentionBadge,
   Card,
   CLASSIFICATION_COLOR,
   ClassificationBadge,
   ConfidenceMeter,
-  DefinitionList,
   Disclaimer,
   PriorityBadge,
 } from './ui';
 
-export function AnalysisResultView({
-  result,
-  showStudentLink = false,
-}: {
-  result: AnalysisResult;
-  showStudentLink?: boolean;
-}) {
-  const { t, formatNumber, formatPercent, formatDate } = useI18n();
+export function AnalysisResultView({ result }: { result: AnalysisResult }) {
+  const { t, formatNumber, formatPercent } = useI18n();
 
-  const { analysis, recommendation, cluster, model } = result;
+  const { analysis, recommendation } = result;
   const classification = analysis.classification;
 
   const probabilities = analysis.probabilities
@@ -98,84 +88,6 @@ export function AnalysisResultView({
         </Alert>
       )}
 
-      <div className="grid grid--halves">
-        <Card title={t('analysis.cluster')}>
-          {cluster ? (
-            <div className="stack stack--tight">
-              <div className="row">
-                <span className="badge badge--brand">
-                  {t('analysis.clusterId')} {cluster.clusterId}
-                </span>
-                <AttentionBadge value={cluster.attentionLevel} />
-              </div>
-
-              <DefinitionList
-                items={[
-                  ...(cluster.profile?.dropoutRatio !== undefined
-                    ? [
-                        {
-                          term: t('analysis.clusterDropoutRate'),
-                          value: formatPercent(cluster.profile.dropoutRatio, 1),
-                        },
-                      ]
-                    : []),
-                  ...(cluster.profile?.size !== undefined
-                    ? [
-                        {
-                          term: t('dataMining.groupSize'),
-                          value: formatNumber(cluster.profile.size),
-                        },
-                      ]
-                    : []),
-                  ...(cluster.distance !== undefined
-                    ? [
-                        {
-                          term: t('analysis.clusterDistance'),
-                          value: formatNumber(cluster.distance, { maximumFractionDigits: 2 }),
-                        },
-                      ]
-                    : []),
-                ]}
-              />
-
-              {recommendation.factors.escalatedByCluster && (
-                <Alert tone="warning">{t('analysis.escalatedByCluster')}</Alert>
-              )}
-
-              <p className="text-sm text-muted">{t('dataMining.profilesHint')}</p>
-            </div>
-          ) : (
-            <p className="text-muted text-sm">{t('analysis.clusterNone')}</p>
-          )}
-        </Card>
-
-        <Card title={t('analysis.model')}>
-          <DefinitionList
-            items={[
-              { term: t('analysis.algorithm'), value: model.algorithm },
-              {
-                term: t('analysis.modelVersion'),
-                value: <span className="mono">{model.version}</span>,
-              },
-              ...(result.createdAt
-                ? [{ term: t('analysis.date'), value: formatDate(result.createdAt, true) }]
-                : []),
-              ...(showStudentLink && result.studentId
-                ? [
-                    {
-                      term: t('analysis.student'),
-                      value: (
-                        <Link to={`/students/${result.studentId}`}>
-                          {result.student?.name ?? t('analysis.viewStudent')}
-                        </Link>
-                      ),
-                    },
-                  ]
-                : []),
-            ]}
-          />
-        </Card>
-      </div>
     </div>
   );
 }

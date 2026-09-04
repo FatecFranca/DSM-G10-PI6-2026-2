@@ -524,7 +524,7 @@ input:-webkit-autofill:focus {
 }
 
 .stat__value {
-  font-size: 27px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.15;
   margin-top: 6px;

@@ -31,11 +31,7 @@ function translateError(status, body) {
   }
 
   if (status === 503) {
-    return AppError.serviceUnavailable(
-      message,
-      code === 'CLUSTERING_NOT_TRAINED' ? 'CLUSTERING_NOT_TRAINED' : 'MODEL_NOT_TRAINED',
-      body?.details,
-    );
+    return AppError.serviceUnavailable(message, 'MODEL_NOT_TRAINED', body?.details);
   }
 
   if (status === 504) {
@@ -106,14 +102,6 @@ export const classify = (features) => request('classify', { method: 'POST', body
 export const classifyBatch = (records) =>
   request('classify/batch', { method: 'POST', body: { records } });
 
-export const assignCluster = (features) =>
-  request('clustering/assign', { method: 'POST', body: { features } });
-
-export const assignClusterBatch = (records) =>
-  request('clustering/assign', { method: 'POST', body: { records } });
-
-export const getClusterProfiles = () => request('clustering/profiles');
-
 export const getActiveModel = () => request('models/active');
 
 export async function checkMdService() {
@@ -127,7 +115,6 @@ export async function checkMdService() {
       status: body?.status ?? (response.ok ? 'ok' : 'degraded'),
       modelVersion: body?.ml?.modelVersion ?? null,
       classifierReady: Boolean(body?.ml?.classifierReady),
-      clusteringReady: Boolean(body?.ml?.clusteringReady),
     };
   } catch (error) {
     return { reachable: false, error: error.message };

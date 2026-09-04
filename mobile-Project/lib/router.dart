@@ -20,18 +20,10 @@ import 'state/i18n_state.dart';
 import 'widgets/app_shell.dart';
 import 'widgets/ui.dart';
 
-/// Rotas do aplicativo, com os **mesmos caminhos** do `frontend-Project`.
-///
-/// Manter `/students/:id`, `/data-mining`, `/admin/users` e companhia iguais aos
-/// da Web não é enfeite: é o que permite falar de uma tela por endereço entre as
-/// duas plataformas.
 GoRouter buildRouter(AuthState auth) {
   return GoRouter(
     initialLocation: '/',
 
-    // O roteador reavalia o redirecionamento sempre que a sessão muda: entrar
-    // leva ao painel e sair (ou um 401 vindo da API) devolve ao login, sem que
-    // nenhuma tela precise navegar na mão.
     refreshListenable: auth,
 
     redirect: (context, state) {
@@ -106,10 +98,6 @@ GoRouter buildRouter(AuthState auth) {
   );
 }
 
-/// Esconde uma tela de quem não tem papel para ela.
-///
-/// Isto é **experiência de uso**: a autorização real está no Back-End, que
-/// recusaria a requisição de qualquer forma.
 class _RoleGuard extends StatelessWidget {
   const _RoleGuard({required this.roles, required this.child});
 

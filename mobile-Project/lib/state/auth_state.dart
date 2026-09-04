@@ -4,11 +4,6 @@ import '../core/api_client.dart';
 import '../models/user.dart';
 import '../services/api_services.dart';
 
-/// Sessão do usuário: token, perfil e permissões derivadas do papel.
-///
-/// Espelha o `AuthContext` da Web. O token vai para o armazenamento seguro; o
-/// perfil é relido da API a cada abertura do app, então um usuário desativado
-/// ou rebaixado perde acesso sem esperar o token expirar.
 class AuthState extends ChangeNotifier {
   AuthState(this._api) {
     _removeUnauthorizedListener = _api.client.onUnauthorized(_onUnauthorized);
@@ -25,7 +20,6 @@ class AuthState extends ChangeNotifier {
   bool get authenticated => _user != null;
   Permissions get can => Permissions(_user?.role);
 
-  /// Restaura a sessão na abertura do app.
   Future<void> restore() async {
     final token = await _api.client.tokens.read();
     if (token == null || token.isEmpty) {
@@ -63,7 +57,6 @@ class AuthState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Relê o perfil (usado depois de trocar a própria senha, por exemplo).
   Future<void> refresh() async {
     if (!authenticated) return;
     try {

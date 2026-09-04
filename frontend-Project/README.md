@@ -129,7 +129,7 @@ Tudo que chega ao navegador é público. **Nenhum segredo aqui.**
 | `/students/new`, `/students/:id/edit` | Cadastro/edição + atributos | ADMIN, ANALYST |
 | `/students/:id` | Detalhe: situação, histórico, acompanhamentos | todos |
 | `/analysis` | Simular classificação · Histórico de análises | todos (simular: ADMIN, ANALYST) |
-| `/data-mining` | Perfis descobertos · Processo do modelo | todos |
+| `/data-mining` | Processo de construção do modelo | todos |
 | `/follow-ups` | Fila de acompanhamentos | todos (escrita: ADMIN, ANALYST) |
 | `/admin/users`, `/admin/institutions` | Administração | ADMIN |
 

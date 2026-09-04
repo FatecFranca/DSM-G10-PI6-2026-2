@@ -5,13 +5,6 @@ import '../core/theme.dart';
 import '../models/enums.dart';
 import '../state/i18n_state.dart';
 
-/// Primitivos visuais, equivalentes a `frontend-Project/src/components/ui.tsx`.
-///
-/// Cada widget aqui é a tradução de uma classe do `global.css` (`.card`,
-/// `.stat`, `.badge`, `.meter`, `.alert`, ...), com os mesmos tokens de cor,
-/// raio e tamanho de fonte. Se algo mudar no CSS da Web, o ponto de ajuste
-/// correspondente está neste arquivo.
-
 Color classificationColor(BuildContext context, Classification value) => switch (value) {
   Classification.dropout => context.colors.dropout,
   Classification.enrolled => context.colors.enrolled,
@@ -24,14 +17,6 @@ Color priorityColor(BuildContext context, Priority value) => switch (value) {
   Priority.low => context.colors.success,
 };
 
-Color attentionColor(BuildContext context, AttentionLevel? value) => switch (value) {
-  AttentionLevel.alta => context.colors.danger,
-  AttentionLevel.media => context.colors.warning,
-  AttentionLevel.baixa => context.colors.success,
-  null => context.colors.textMuted,
-};
-
-/// `.card` — superfície com cabeçalho opcional.
 class AppCard extends StatelessWidget {
   const AppCard({
     super.key,
@@ -46,7 +31,6 @@ class AppCard extends StatelessWidget {
   final String? hint;
   final List<Widget>? actions;
 
-  /// `card__body--flush`: sem respiro interno, para listas coladas na borda.
   final bool flush;
   final Widget child;
 
@@ -112,7 +96,6 @@ class AppCard extends StatelessWidget {
 
 enum StatTone { normal, accent, danger, warning, success }
 
-/// `.stat` — cartão de indicador com a barra colorida à esquerda.
 class StatCard extends StatelessWidget {
   const StatCard({
     super.key,
@@ -138,11 +121,6 @@ class StatCard extends StatelessWidget {
       StatTone.success => colors.success,
     };
 
-    // A Web faz a barra de tom com `border-left: 3px solid` (`.stat--accent`).
-    // Aqui ela **não** pode ser uma borda: um BoxDecoration com borderRadius
-    // exige borda uniforme, e uma lateral mais grossa e de outra cor quebra
-    // essa regra — a pintura falha e o cartão inteiro some da tela. Então a
-    // borda fica uniforme e a barra vira uma faixa desenhada por cima.
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
@@ -164,9 +142,6 @@ class StatCard extends StatelessWidget {
   }
 
   Widget _content(AppColors colors) {
-    // Os limites de linha abaixo sao o que torna a altura uniforme possivel:
-    // sem eles um texto longo estouraria a altura reservada por [StatGrid].
-    // Precisam casar com as constantes de [StatGrid].
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -186,9 +161,6 @@ class StatCard extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           value,
-          // A Web deixa o valor quebrar (`overflow-wrap: anywhere` no
-          // `.stat__value`) — e o que salva um valor longo como o nome do
-          // algoritmo, em vez de corta-lo.
           maxLines: StatGrid.valueLines,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
@@ -218,23 +190,12 @@ class StatCard extends StatelessWidget {
   }
 }
 
-/// Grade de indicadores — equivalente ao `.grid--stats` do `global.css`
-/// (`repeat(auto-fit, minmax(150px, 1fr))`).
-///
-/// **Todos os cartoes tem exatamente a mesma altura.** Ela nao e um numero
-/// fixo em pixels: e calculada a partir do espaco que o conteudo maximo ocupa
-/// (rotulo, valor e texto de apoio, cada um com seu limite de linhas) ja
-/// multiplicado pela escala de fonte do sistema. Altura fixa em pixels voltaria
-/// a estourar assim que o usuario aumentasse a fonte nas configuracoes do
-/// aparelho — foi o "BOTTOM OVERFLOWED" que essa grade precisou resolver.
 class StatGrid extends StatelessWidget {
   const StatGrid({super.key, required this.children, this.spacing = 12});
 
   final List<Widget> children;
   final double spacing;
 
-  /// Limites de linha de cada parte do cartao. [StatCard] usa os mesmos
-  /// valores; alterar aqui sem alterar la faz o conteudo transbordar.
   static const int labelLines = 2;
   static const int valueLines = 2;
   static const int metaLines = 2;
@@ -243,19 +204,11 @@ class StatGrid extends StatelessWidget {
   static const double valueLineHeight = 1.15;
   static const double metaLineHeight = 1.4;
 
-  /// Espaco do cartao que nao e texto: padding vertical (12 + 12), os dois
-  /// espacamentos entre rotulo, valor e texto de apoio (6 + 3) e a borda, que
-  /// consome 1px em cima e 1px embaixo do espaco disponivel para o conteudo.
   static const double _chrome = 12 + 12 + 6 + 3 + 2;
 
-  /// Altura que comporta o pior caso de conteudo no tamanho de fonte atual.
   static double heightFor(BuildContext context) {
     final scaler = MediaQuery.textScalerOf(context);
 
-    // O arredondamento por linha nao e detalhe: o Flutter arredonda a altura de
-    // CADA linha para cima ao montar o paragrafo (medido: 29,9 vira 30; 52,9
-    // vira 53; 33,6 vira 34). Multiplicar o valor fracionario pelo numero de
-    // linhas subestima a altura real e o cartao transborda por poucos pixels.
     double bloco(double fontSize, int linhas, double alturaLinha) =>
         (scaler.scale(fontSize) * alturaLinha).ceilToDouble() * linhas;
 
@@ -276,8 +229,6 @@ class StatGrid extends StatelessWidget {
           return Wrap(spacing: spacing, runSpacing: spacing, children: children);
         }
 
-        // Mesma intencao do `minmax(150px, 1fr)`: cabem quantas colunas de ao
-        // menos 150px couberem, com no minimo uma.
         final columns = ((available + spacing) / (150 + spacing)).floor().clamp(1, 4);
         final itemWidth = (available - spacing * (columns - 1)) / columns;
 
@@ -296,7 +247,6 @@ class StatGrid extends StatelessWidget {
 
 enum ButtonVariant { primary, secondary, ghost, danger }
 
-/// `.btn` — botão com as quatro variantes e estado de carregamento.
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -388,7 +338,6 @@ class AppButton extends StatelessWidget {
   }
 }
 
-/// `.badge` — selo arredondado com fundo, borda e texto derivados de uma cor.
 class AppBadge extends StatelessWidget {
   const AppBadge({super.key, required this.label, this.color, this.neutral = false});
 
@@ -453,21 +402,6 @@ class PriorityBadge extends StatelessWidget {
   }
 }
 
-class AttentionBadge extends StatelessWidget {
-  const AttentionBadge({super.key, required this.value});
-
-  final AttentionLevel? value;
-
-  @override
-  Widget build(BuildContext context) {
-    if (value == null) return const SizedBox.shrink();
-    return AppBadge(
-      label: context.i18n.t('attention.${value!.api}'),
-      color: attentionColor(context, value),
-    );
-  }
-}
-
 class StatusBadge extends StatelessWidget {
   const StatusBadge({super.key, required this.value});
 
@@ -487,8 +421,6 @@ class StatusBadge extends StatelessWidget {
   }
 }
 
-/// `.meter` — score com barra. A cor acompanha a **classe prevista**, não o
-/// valor: confiança alta em `Dropout` não é "bom", é sinal forte de risco.
 class ConfidenceMeter extends StatelessWidget {
   const ConfidenceMeter({super.key, required this.value, this.classification});
 
@@ -544,7 +476,6 @@ class ConfidenceMeter extends StatelessWidget {
 
 enum AlertTone { info, warning, danger, success }
 
-/// `.alert` — aviso com ícone, fundo suave e borda da mesma cor.
 class AppAlert extends StatelessWidget {
   const AppAlert({
     super.key,
@@ -562,8 +493,6 @@ class AppAlert extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    // A Web usa os glifos ℹ / ⚠ / ✓; no Android nem toda fonte de sistema cobre
-    // esses pontos de código, então aqui vão os ícones equivalentes do Material.
     final (Color color, IconData icon) = switch (tone) {
       AlertTone.info => (colors.info, Icons.info_outline),
       AlertTone.warning => (colors.warning, Icons.warning_amber_outlined),
@@ -614,7 +543,6 @@ class AppAlert extends StatelessWidget {
   }
 }
 
-/// `.disclaimer` — a ressalva que acompanha **todo** resultado de IA.
 class Disclaimer extends StatelessWidget {
   const Disclaimer({super.key, this.text});
 
@@ -654,7 +582,6 @@ class Disclaimer extends StatelessWidget {
   }
 }
 
-/// `.state` com spinner.
 class LoadingState extends StatelessWidget {
   const LoadingState({super.key, this.label});
 
@@ -684,7 +611,6 @@ class LoadingState extends StatelessWidget {
   }
 }
 
-/// `.state` vazio.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
@@ -729,7 +655,6 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-/// `.state` de erro, com ação de tentar novamente.
 class ErrorStateView extends StatelessWidget {
   const ErrorStateView({super.key, required this.message, this.onRetry});
 
@@ -750,7 +675,6 @@ class ErrorStateView extends StatelessWidget {
   }
 }
 
-/// `.pagination` — o rodapé de paginação das listagens.
 class PaginationBar extends StatelessWidget {
   const PaginationBar({
     super.key,
@@ -804,7 +728,6 @@ class PaginationBar extends StatelessWidget {
   }
 }
 
-/// `.tabs` — abas sublinhadas.
 class AppTabs extends StatelessWidget {
   const AppTabs({super.key, required this.labels, required this.active, required this.onChange});
 
@@ -854,7 +777,6 @@ class AppTabs extends StatelessWidget {
   }
 }
 
-/// `.definition-list` — pares rótulo/valor.
 class DefinitionList extends StatelessWidget {
   const DefinitionList({super.key, required this.items});
 
@@ -895,7 +817,6 @@ class DefinitionList extends StatelessWidget {
   }
 }
 
-/// Texto simples para uso dentro de [DefinitionList].
 class DefinitionValue extends StatelessWidget {
   const DefinitionValue(this.text, {super.key, this.mono = false, this.color});
 
@@ -910,7 +831,6 @@ class DefinitionValue extends StatelessWidget {
   );
 }
 
-/// `.field` — rótulo, campo, dica e erro, com o ícone de ajuda do modelo.
 class LabeledField extends StatelessWidget {
   const LabeledField({
     super.key,
@@ -983,9 +903,6 @@ class LabeledField extends StatelessWidget {
   }
 }
 
-/// Adaptação Mobile do `.info-tooltip`: como não existe *hover* em toque, a
-/// explicação do atributo (e a tabela de códigos, quando houver) abre em uma
-/// folha inferior.
 class FeatureInfoButton extends StatelessWidget {
   const FeatureInfoButton({super.key, required this.info, required this.title});
 
@@ -1089,7 +1006,6 @@ class FeatureInfoButton extends StatelessWidget {
   }
 }
 
-/// `.input` — campo de texto.
 class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,
@@ -1116,7 +1032,6 @@ class AppTextField extends StatelessWidget {
   final bool enabled;
   final bool invalid;
 
-  /// `input--out-of-range`: valor fora da faixa observada no treino.
   final bool outOfRange;
 
   final int maxLines;
@@ -1162,7 +1077,6 @@ class AppTextField extends StatelessWidget {
   }
 }
 
-/// `.select` — lista suspensa.
 class AppDropdown<T> extends StatelessWidget {
   const AppDropdown({
     super.key,
@@ -1183,10 +1097,6 @@ class AppDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    // Um valor que não esteja entre as opções dispara asserção no
-    // DropdownButtonFormField — e isso acontece de verdade: ao editar um
-    // estudante cuja instituição foi desativada, ela não vem na listagem de
-    // ativas. Nesse caso o campo aparece vazio, em vez de derrubar a tela.
     final hasValue = items.any((item) => item.value == value);
 
     return DropdownButtonFormField<T?>(
@@ -1213,7 +1123,6 @@ class AppDropdown<T> extends StatelessWidget {
   }
 }
 
-/// Título de seção do formulário de atributos (`.features-group__title`).
 class SectionTitle extends StatelessWidget {
   const SectionTitle(this.title, {super.key});
 
@@ -1242,7 +1151,6 @@ class SectionTitle extends StatelessWidget {
   }
 }
 
-/// Espaçamento vertical padrão entre blocos (`.stack`, `gap: 16px`).
 class AppStack extends StatelessWidget {
   const AppStack({super.key, required this.children, this.gap = AppSizes.gap});
 
@@ -1260,7 +1168,6 @@ class AppStack extends StatelessWidget {
   }
 }
 
-/// `.toast` — retorno de ação, com a barra colorida à esquerda.
 void showToast(BuildContext context, String message, {AlertTone tone = AlertTone.info}) {
   final colors = context.colors;
   final color = switch (tone) {
@@ -1287,7 +1194,6 @@ void showToast(BuildContext context, String message, {AlertTone tone = AlertTone
     );
 }
 
-/// Confirmação destrutiva (equivalente ao `window.confirm` da Web).
 Future<bool> confirmDialog(BuildContext context, {required String message}) async {
   final t = context.i18nRead;
   final result = await showDialog<bool>(

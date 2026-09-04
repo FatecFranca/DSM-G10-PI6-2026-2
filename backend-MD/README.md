@@ -3,9 +3,9 @@
 Serviço especializado de Inteligência Artificial e Mineração de Dados do projeto
 **Predict Students' Dropout and Academic Success Classification** (PI do 6º semestre).
 
-Classifica estudantes entre `Dropout`, `Enrolled` e `Graduate` e disponibiliza análise
-não supervisionada de perfis. Não tem tela, não gerencia usuários e não guarda dado de
-negócio — quem faz isso é o `backend-Project`, o único consumidor previsto deste serviço.
+Classifica estudantes entre `Dropout`, `Enrolled` e `Graduate` e expõe o processo de
+Mineração de Dados que produziu o modelo. Não tem tela, não gerencia usuários e não
+guarda dado de negócio — quem faz isso é o `backend-Project`, o único consumidor previsto deste serviço.
 
 > A classificação é **apoio à tomada de decisão**, não uma garantia sobre o futuro de um
 > estudante. O campo `confidence` é a probabilidade estimada pelo modelo e não passou por
@@ -47,8 +47,8 @@ idempotente — reexecutar não repete trabalho já feito:
 2. sincroniza o schema com o MongoDB (`prisma db push`);
 3. cria o ambiente Python em `ML/.venv` e instala as dependências de ML, se ainda não
    existir (tenta `py -3.10`, `py -3.9`, `python`/`python3` na ordem);
-4. treina o modelo (`prepare_data.py` → `train_model.py`) e o agrupamento
-   (`train_clusters.py`), se os artefatos ainda não existirem;
+4. treina o modelo (`prepare_data.py` → `train_model.py`), se os artefatos ainda não
+   existirem;
 5. registra os metadados do modelo no MongoDB.
 
 Nenhum passo interrompe o `npm install` se falhar (banco fora do ar, Python ausente): o
@@ -75,7 +75,7 @@ npm run prisma:push       # só o schema
 
 conda env create -f ML/environment.yml && conda activate pi6-backend-md-ml   # alternativa ao venv
 
-npm run ml:pipeline       # prepare_data → train_model → train_clusters
+npm run ml:pipeline       # prepare_data → train_model
 npm run ml:register       # registra os metadados técnicos no MongoDB
 ```
 
@@ -96,6 +96,17 @@ npm start                 # produção
 
 ## Pipeline de ML
 
+### Tarefa de aprendizado: somente Classificação
+
+`docs/dataset/BASE-ML.md` exige **mínimo uma e no máximo duas** tarefas entre Classificação,
+Regressão, Regra de associação, Clustering e Recomendação. Este projeto aplica **uma:
+classificação supervisionada** em 3 classes.
+
+Existiu aqui um agrupamento por `KMeans`, removido em 03/09/2026. A base é rotulada e o
+problema é de classificação; o agrupamento também não se sustentava empiricamente
+(silhueta 0,214, com 74,6% dos registros num único grupo). O histórico completo da decisão
+está na seção 10 do `CONTEXT.md`.
+
 As quatro etapas são desacopladas e podem ser executadas isoladamente.
 
 | Etapa | Script | Comando | Entrada → Saída |
@@ -104,7 +115,6 @@ As quatro etapas são desacopladas e podem ser executadas isoladamente.
 | 2. Preparação | `ML/prepare_data.py` | `npm run ml:prepare` | CSV bruto → `data/processed/`, `artifacts/label_map.json`, `artifacts/feature_spec.json`, `reports/preparation_report.json` |
 | 3. Treinamento | `ML/train_model.py` | `npm run ml:train` | dataset tratado → `artifacts/model.pkl`, `artifacts/scaler.pkl`, `artifacts/model_metadata.json` |
 | 4. Inferência | `ML/predict.py` | acionado pela API | JSON (stdin) → JSON (stdout) |
-| Complementar | `ML/train_clusters.py` | `npm run ml:cluster` | dataset tratado + scaler → `artifacts/cluster_model.pkl`, `artifacts/cluster_metadata.json` |
 | Exploração | `ML/explore.py` | `npm run ml:explore` | dataset tratado → `reports/figures/*.png` (dev-only) |
 
 ### Dataset
@@ -122,19 +132,27 @@ Distribuição das classes (desbalanceada, razão 2,78x):
 
 ### Como o modelo é escolhido
 
-Nove algoritmos candidatos são comparados por validação cruzada (10 folds estratificados)
-e avaliados em treino e teste. A seleção tem duas etapas:
+O dataset é dividido em **desenvolvimento (80%) e teste (20%)**. Treze algoritmos
+candidatos — incluindo variantes com `class_weight="balanced"` — são comparados por
+validação cruzada de 10 folds **apenas sobre o desenvolvimento**. O conjunto de teste não
+participa da escolha: ele é usado uma única vez, no fim, para a estimativa honesta.
 
-1. **Métrica principal:** F1 macro no conjunto de teste — preferido à acurácia porque as
-   três classes são desbalanceadas, e um modelo pode ter boa acurácia acertando só
-   `Dropout` e `Graduate` enquanto erra sistematicamente `Enrolled`.
-2. **Desempate por generalização:** candidatos dentro de 0,01 de F1 macro do melhor são
-   tratados como empatados (a diferença é ruído em ~885 registros de teste); entre eles
-   ganha o de menor distância treino-teste.
+A seleção tem três etapas:
 
-Sem a etapa 2 a escolha cai em um Random Forest que decora o treino (acurácia 0,985 no
-treino contra 0,758 no teste) por uma vantagem de milésimos — exatamente o overfitting
-que a seção 6.1.3 do `CONTEXT.md` manda evitar.
+1. **Descarte por memorização:** candidatos cuja distância entre acurácia de treino e de
+   validação passa de 0,05 são eliminados. Isso remove Random Forest (gap 0,21),
+   Gradient Boosting, SVC e as árvores de decisão.
+2. **Score de seleção:** `0,50 × F1 macro + 0,50 × revocação de Dropout`. O F1 macro cuida
+   do equilíbrio entre as três classes desbalanceadas; a revocação de `Dropout` entra com
+   peso igual porque, num sistema de apoio à identificação de estudantes em risco, deixar
+   de sinalizar quem evade é o erro caro.
+3. **Empate:** candidatos dentro de 0,01 do melhor score são tratados como equivalentes;
+   entre eles vence o de maior score, com a menor distância treino-validação como critério
+   de desempate.
+
+Por que medir na validação cruzada e não no teste: selecionar pelo teste transforma o teste
+em validação e infla as métricas publicadas. Medido no projeto, o otimismo era de ~0,016 de
+F1 macro — e a escolha mudava.
 
 O `model_metadata.json` registra a comparação completa dos candidatos, o critério
 aplicado e a justificativa da escolha.
@@ -146,10 +164,11 @@ acompanha: hiperparâmetros, impressão digital SHA-256 do dataset, ordem das fe
 métricas (incluindo matriz de confusão 3x3 e relatório por classe), versões de Python e
 bibliotecas, e data do treinamento.
 
-**Sem vazamento de dados:** o `StandardScaler` é ajustado uma única vez, apenas sobre
-`X_train`, depois do split. Na comparação por validação cruzada cada candidato roda dentro
-de um `Pipeline(StandardScaler → estimador)`, de modo que o normalizador é reajustado a
-cada fold.
+**Sem vazamento de dados:** na comparação, cada candidato roda dentro de um
+`Pipeline(StandardScaler → estimador)`, então o normalizador é reajustado dentro de cada
+fold, sem enxergar os dados de validação daquele fold. O modelo final e seu `scaler` são
+ajustados no conjunto de desenvolvimento; o conjunto de teste nunca participa de nenhum
+ajuste nem da escolha do algoritmo.
 
 ---
 
@@ -164,11 +183,8 @@ Autenticação por **API Key de serviço** no header `X-API-Key` (ou
 | `GET` | `/api/features` | Contrato de atributos aceito pelo modelo |
 | `POST` | `/api/classify` | Classifica um estudante |
 | `POST` | `/api/classify/batch` | Classifica um lote (preferível a N chamadas) |
-| `GET` | `/api/clustering/profiles` | Perfis descobertos pelo agrupamento |
-| `POST` | `/api/clustering/assign` | Atribui estudante(s) a um perfil |
 | `GET` | `/api/models/active` | Metadados do modelo em uso (lidos do artefato) |
 | `GET` | `/api/models` | Histórico de versões registradas no banco |
-| `GET` | `/api/models/clustering` | Histórico de execuções de agrupamento |
 | `GET` | `/api/models/{version}` | Metadados completos de uma versão |
 | `POST` | `/api/models/register` | Registra os artefatos atuais no banco |
 
@@ -187,7 +203,7 @@ curl -X POST http://localhost:3003/api/classify \
   "classId": 0,
   "confidence": 0.999,
   "probabilities": { "Dropout": 0.999, "Enrolled": 0.001, "Graduate": 0.0 },
-  "model": { "version": "...", "algorithm": "LinearDiscriminantAnalysis" },
+  "model": { "version": "...", "algorithm": "LogisticRegression" },
   "disclaimer": "A classificação é apoio à tomada de decisão..."
 }
 ```
@@ -202,7 +218,6 @@ Formato único: `{ "error": "<CODE>", "message": "...", "details": ... }`
 | `INVALID_FEATURES` | 422 | Atributos ausentes ou não numéricos |
 | `BATCH_TOO_LARGE` | 400 | Lote acima de `ML_MAX_BATCH_SIZE` |
 | `MODEL_NOT_TRAINED` | 503 | Pipeline não executado |
-| `CLUSTERING_NOT_TRAINED` | 503 | `train_clusters.py` não executado |
 | `ML_TIMEOUT` | 504 | Script Python excedeu `ML_TIMEOUT_MS` |
 
 ---
@@ -216,20 +231,18 @@ backend-MD/
 │   ├── prepare_data.py          etapa 2
 │   ├── train_model.py           etapa 3
 │   ├── predict.py               etapa 4 — stdin/stdout
-│   ├── train_clusters.py        não supervisionado
-│   ├── cluster_assign.py        inferência de perfil
 │   ├── explore.py               exploração visual (dev-only)
 │   ├── environment.yml          ambiente conda (Python 3.9)
 │   ├── requirements.txt         ambiente mínimo de execução
 │   ├── artifacts/               modelo, scaler e metadados (gerados)
 │   └── reports/                 relatórios e figuras (gerados)
-├── prisma/schema.prisma         MlModel, ClusteringModel
+├── prisma/schema.prisma         MlModel
 └── src/
     ├── config/                  env, swagger
     ├── lib/prisma.js            único acesso ao MongoDB
     ├── ml/                      pythonRunner (ponte), artifacts, validation
     ├── middlewares/             apiKeyAuth, errorHandler
-    ├── modules/                 classification, clustering, models, health
+    ├── modules/                 classification, models, health
     ├── scripts/                 runMl, registerModel
     ├── app.js
     └── server.js

@@ -1,4 +1,4 @@
-import { getClusterMetadata, getModelMetadata } from '../../ml/artifacts.js';
+import { getModelMetadata } from '../../ml/artifacts.js';
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../utils/AppError.js';
 
@@ -21,25 +21,6 @@ function toModelRecord(metadata) {
     supportsProbability: Boolean(metadata.supports_probability),
     environment: metadata.environment,
     artifacts: metadata.artifacts,
-    trainedAt: new Date(metadata.trained_at),
-  };
-}
-
-function toClusteringRecord(metadata) {
-  return {
-    clusterVersion: metadata.cluster_version,
-    algorithm: metadata.algorithm,
-    task: metadata.task,
-    k: metadata.k,
-    hyperparameters: metadata.hyperparameters,
-    selectionRationale: metadata.selection_rationale,
-    metrics: metadata.metrics,
-    profiles: metadata.profiles,
-    profileFeatures: metadata.profile_features ?? [],
-    features: metadata.features,
-    preprocessing: metadata.preprocessing,
-    dataset: metadata.dataset,
-    environment: metadata.environment,
     trainedAt: new Date(metadata.trained_at),
   };
 }
@@ -123,7 +104,7 @@ export async function getModelByVersion(modelVersion) {
 }
 
 export async function registerCurrentArtifacts() {
-  const registered = { model: null, clustering: null, skipped: [] };
+  const registered = { model: null };
 
   const metadata = await getModelMetadata();
   const record = toModelRecord(metadata);
@@ -139,58 +120,5 @@ export async function registerCurrentArtifacts() {
     select: { modelVersion: true, algorithm: true, trainedAt: true, isActive: true },
   });
 
-  try {
-    const clusterMetadata = await getClusterMetadata();
-    const clusterRecord = toClusteringRecord(clusterMetadata);
-
-    await prisma.clusteringModel.updateMany({
-      where: { isActive: true, clusterVersion: { not: clusterRecord.clusterVersion } },
-      data: { isActive: false },
-    });
-    registered.clustering = await prisma.clusteringModel.upsert({
-      where: { clusterVersion: clusterRecord.clusterVersion },
-      create: { ...clusterRecord, isActive: true },
-      update: { ...clusterRecord, isActive: true },
-      select: { clusterVersion: true, algorithm: true, k: true, trainedAt: true, isActive: true },
-    });
-  } catch (error) {
-    registered.skipped.push({
-      artifact: 'clustering',
-      reason: error.code ?? 'CLUSTERING_NOT_TRAINED',
-      message: error.message,
-    });
-  }
-
   return registered;
-}
-
-export async function listClusteringModels({ limit = 50 } = {}) {
-  const models = await prisma.clusteringModel.findMany({
-    orderBy: { trainedAt: 'desc' },
-    take: Math.min(Math.max(limit, 1), 200),
-    select: {
-      clusterVersion: true,
-      algorithm: true,
-      k: true,
-      metrics: true,
-      isActive: true,
-      trainedAt: true,
-      registeredAt: true,
-      selectionRationale: true,
-    },
-  });
-
-  return models.map((model) => ({
-    clusterVersion: model.clusterVersion,
-    algorithm: model.algorithm,
-    k: model.k,
-    isActive: model.isActive,
-    trainedAt: model.trainedAt,
-    registeredAt: model.registeredAt,
-    selectionRationale: model.selectionRationale,
-    summary: {
-      silhouette: model.metrics?.silhouette,
-      daviesBouldin: model.metrics?.davies_bouldin,
-    },
-  }));
 }

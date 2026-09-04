@@ -3,27 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pae_mobile/core/theme.dart';
 import 'package:pae_mobile/widgets/ui.dart';
 
-/// O `AppDropdown` precisa ser um componente **controlado**: quem manda é o
-/// `value` que o pai passa, como nos `<select>` da Web. É disso que dependem o
-/// "Limpar filtros" do histórico de análises e a carga dos dados no formulário
-/// de estudante.
-///
-/// O comportamento vem do `DropdownButtonFormField`, cujo estado ressincroniza
-/// quando `initialValue` muda (`_DropdownButtonFormFieldState.didUpdateWidget`
-/// chama `setValue`). Não é óbvio olhando só a classe base `FormFieldState`,
-/// que sincroniza apenas `forceErrorText` — daí valer um teste fixando isso,
-/// para que uma troca futura de widget não derrube a garantia em silêncio.
-///
-/// O terceiro caso já pegou um defeito real: valor fora da lista de opções
-/// dispara asserção no widget e derruba a tela.
 void main() {
   const opcoes = [
     (value: 'a', label: 'Opção A'),
     (value: 'b', label: 'Opção B'),
   ];
 
-  /// Monta o campo deixando o teste trocar o valor "de fora", como faz o botão
-  /// de limpar filtros.
   Future<StateSetter> montar(
     WidgetTester tester,
     ValueGetter<String?> valor, {
@@ -52,7 +37,6 @@ void main() {
     return alterarDeFora;
   }
 
-  /// Índice que o `DropdownButton` está de fato exibindo.
   int indiceExibido(WidgetTester tester) =>
       tester.widget<IndexedStack>(find.byType(IndexedStack)).index!;
 
@@ -67,7 +51,6 @@ void main() {
 
     expect(indiceExibido(tester), 0);
 
-    // Equivalente ao "Limpar filtros": o estado muda sem toque no campo.
     alterarDeFora(() => valor = 'b');
     await tester.pump();
 
@@ -79,8 +62,6 @@ void main() {
   });
 
   testWidgets('valor fora da lista de opções não derruba a tela', (tester) async {
-    // Acontece ao editar um estudante cuja instituição foi desativada e por
-    // isso não veio na listagem de instituições ativas.
     await montar(tester, () => 'instituicao-inexistente');
 
     expect(tester.takeException(), isNull);

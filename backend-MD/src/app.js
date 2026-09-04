@@ -7,7 +7,6 @@ import { swaggerSpec } from './config/swagger.js';
 import { apiKeyAuth } from './middlewares/apiKeyAuth.js';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
 import classificationRoutes from './modules/classification/classification.routes.js';
-import clusteringRoutes from './modules/clustering/clustering.routes.js';
 import healthRoutes from './modules/health/health.routes.js';
 import modelsRoutes from './modules/models/models.routes.js';
 
@@ -56,7 +55,6 @@ export function createApp() {
 
   app.use('/api', apiKeyAuth);
   app.use('/api', classificationRoutes);
-  app.use('/api/clustering', clusteringRoutes);
   app.use('/api/models', modelsRoutes);
 
   app.use(notFoundHandler);

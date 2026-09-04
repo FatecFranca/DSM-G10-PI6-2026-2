@@ -16,7 +16,6 @@ import '../widgets/async_builder.dart';
 import '../widgets/ui.dart';
 import 'dashboard_page.dart' show ListRowTile;
 
-/// Detalhe do estudante: situação, histórico, acompanhamentos e atributos.
 class StudentDetailPage extends StatefulWidget {
   const StudentDetailPage({super.key, required this.studentId});
 
@@ -313,7 +312,6 @@ class _StudentDetailBody extends StatelessWidget {
                           ListRowTile(
                             title: t.formatDate(analysis.createdAt, withTime: true),
                             subtitle: '${analysis.algorithm} · ${analysis.modelVersion}'
-                                '${analysis.clusterId == null ? '' : ' · ${t.t('analysis.clusterId')} ${analysis.clusterId}'}'
                                 '${analysis.requestedBy == null ? '' : ' · ${analysis.requestedBy!.name}'}',
                             trailing: PriorityBadge(value: analysis.priority),
                             footer: AnalysisRow(
@@ -399,8 +397,6 @@ class _StudentDetailBody extends StatelessWidget {
   }
 }
 
-/// Abertura de um acompanhamento — o `Modal` da Web vira folha inferior, que é
-/// o padrão de formulário curto em Mobile.
 class NewFollowUpSheet extends StatefulWidget {
   const NewFollowUpSheet({super.key, required this.studentId, this.analysisId});
 

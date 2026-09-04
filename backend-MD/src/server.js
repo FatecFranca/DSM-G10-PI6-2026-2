@@ -38,11 +38,6 @@ const server = app.listen(env.PORT, async () => {
     } else {
       console.log(`[backend-MD] modelo ativo: ${ml.modelVersion}`);
     }
-    if (!ml.clusteringReady) {
-      console.log('[backend-MD] agrupamento não treinado (opcional) — rode "npm run ml:cluster".');
-    } else {
-      console.log(`[backend-MD] agrupamento ativo: ${ml.clusterVersion}`);
-    }
   } catch (error) {
     console.warn('[backend-MD] AVISO: não foi possível inspecionar a camada de ML:', error.message);
   }

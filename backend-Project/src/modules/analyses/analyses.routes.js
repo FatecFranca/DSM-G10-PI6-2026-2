@@ -86,7 +86,6 @@ router.get('/', async (req, res, next) => {
  *             required: [features]
  *             properties:
  *               features: { $ref: '#/components/schemas/StudentFeatures' }
- *               includeClustering: { type: boolean, default: true }
  *     responses:
  *       200:
  *         description: Resultado da classificação
@@ -100,11 +99,10 @@ router.get('/', async (req, res, next) => {
  */
 router.post('/simulate', authorize(...RUN_ROLES), async (req, res, next) => {
   try {
-    const { features, includeClustering } = validate(req.body, {
+    const { features } = validate(req.body, {
       features: { type: 'object', required: true },
-      includeClustering: { type: 'boolean', default: true },
     });
-    res.json(await analyzeAdHoc(features, { includeClustering }));
+    res.json(await analyzeAdHoc(features));
   } catch (error) {
     next(error);
   }
@@ -169,7 +167,6 @@ router.post('/batch', authorize(...RUN_ROLES), async (req, res, next) => {
       await analyzeBatch(
         ids.map((id) => validateObjectId(id, 'studentIds')),
         req.user,
-        { includeClustering: req.body?.includeClustering !== false },
       ),
     );
   } catch (error) {
@@ -187,18 +184,9 @@ router.post('/batch', authorize(...RUN_ROLES), async (req, res, next) => {
  *       Envia os atributos do estudante ao serviço de IA, deriva a prioridade de
  *       acompanhamento, grava no histórico e atualiza o resumo do estudante.
  *
- *       Exige cadastro completo de atributos. Se o agrupamento não estiver
- *       disponível no serviço de IA, a classificação é entregue mesmo assim e
- *       `cluster` volta nulo.
+ *       Exige cadastro completo de atributos.
  *     parameters:
  *       - { in: path, name: studentId, required: true, schema: { type: string } }
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               includeClustering: { type: boolean, default: true }
  *     responses:
  *       201:
  *         description: Análise registrada
@@ -221,11 +209,9 @@ router.post('/batch', authorize(...RUN_ROLES), async (req, res, next) => {
  */
 router.post('/student/:studentId', authorize(...RUN_ROLES), async (req, res, next) => {
   try {
-    const includeClustering = req.body?.includeClustering !== false;
     const result = await analyzeStudent(
       validateObjectId(req.params.studentId, 'studentId'),
       req.user,
-      { includeClustering },
     );
     res.status(201).json(result);
   } catch (error) {

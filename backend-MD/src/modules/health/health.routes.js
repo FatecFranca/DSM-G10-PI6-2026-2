@@ -17,6 +17,7 @@ const router = Router();
  *       503 quando a camada de ML não está pronta (modelo não treinado, por
  *       exemplo) — assim o orquestrador não envia tráfego para uma instância que
  *       ainda não consegue responder.
+ *     security: []
  *     responses:
  *       200:
  *         description: Serviço saudável
@@ -47,9 +48,7 @@ router.get('/', async (req, res, next) => {
       ml: {
         featureSpecReady: ml.featureSpecReady,
         classifierReady: ml.classifierReady,
-        clusteringReady: ml.clusteringReady,
         modelVersion: ml.modelVersion,
-        clusterVersion: ml.clusterVersion,
         bridge: 'child_process',
       },
     });

@@ -11,9 +11,6 @@ describe('Students', () => {
 
       const suffix = `${Date.now()}`.slice(-8)
 
-      // Escopado ao card "Dados do estudante": o formulário de atributos (36
-      // campos do modelo) também tem um campo chamado "Curso" (código
-      // categórico), então buscar por rótulo sem escopo pegaria o errado.
       cy.contains('.card', 'Dados do estudante').within(() => {
         cy.contains('.field', 'Código / Matrícula').find('input').type(`E2E-${suffix}`)
         cy.contains('.field', 'Nome').find('input').type(`Estudante Teste ${suffix}`)

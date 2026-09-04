@@ -15,7 +15,6 @@ import '../widgets/app_shell.dart';
 import '../widgets/async_builder.dart';
 import '../widgets/ui.dart';
 
-/// Administração de usuários — somente para o papel Administrador.
 class AdminUsersPage extends StatefulWidget {
   const AdminUsersPage({super.key});
 
@@ -51,8 +50,6 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       final page = await context.read<Api>().institutions.list(limit: 100);
       if (mounted) setState(() => _institutions = page.data);
     } catch (_) {
-      // A lista de instituições só alimenta o seletor do formulário; sem ela a
-      // listagem de usuários continua utilizável.
     }
   }
 
@@ -254,8 +251,6 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                                   variant: ButtonVariant.ghost,
                                   onPressed: () => _openPasswordReset(user),
                                 ),
-                                // O Back-End recusa desativar a própria conta;
-                                // o botão some para não oferecer o que falharia.
                                 if (user.active && user.id != currentUser?.id)
                                   AppButton(
                                     label: t.t('common.deactivate'),

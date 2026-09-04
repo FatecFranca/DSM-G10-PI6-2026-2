@@ -1,7 +1,6 @@
 import 'common.dart';
 import 'enums.dart';
 
-/// Ação de acompanhamento aberta a partir de uma análise.
 class FollowUp {
   const FollowUp({
     required this.id,
@@ -49,7 +48,6 @@ class FollowUp {
         createdBy: NamedRef.fromJson(json['createdBy']),
       );
 
-  /// Prazo vencido e ainda em aberto — mesma regra da tela Web.
   bool get isOverdue =>
       dueDate != null &&
       dueDate!.isBefore(DateTime.now()) &&

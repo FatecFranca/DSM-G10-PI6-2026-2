@@ -21,7 +21,7 @@ do requisito Mobile existente no PI do 5º semestre.
 
 O app cobre as mesmas áreas funcionais da Web: acesso, painel, estudantes (listagem,
 cadastro, detalhe, análise individual e em lote), análise (simulação e histórico),
-mineração de dados (perfis e processo do modelo), acompanhamento e administração de
+mineração de dados (processo de construção do modelo), acompanhamento e administração de
 usuários e instituições. Ver `README.md` para telas, decisões de adaptação ao celular e
 como executar.
 

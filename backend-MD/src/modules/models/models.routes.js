@@ -3,7 +3,6 @@ import { Router } from 'express';
 import {
   getActiveModel,
   getModelByVersion,
-  listClusteringModels,
   listModels,
   registerCurrentArtifacts,
 } from './models.service.js';
@@ -65,33 +64,14 @@ router.get('/', async (req, res, next) => {
 
 /**
  * @openapi
- * /api/models/clustering:
- *   get:
- *     tags: [Modelos]
- *     summary: Histórico de execuções de agrupamento registradas
- *     security: [{ ApiKeyAuth: [] }]
- *     responses:
- *       200: { description: Lista de versões de agrupamento }
- *       401: { $ref: '#/components/responses/Unauthorized' }
- */
-router.get('/clustering', async (req, res, next) => {
-  try {
-    res.json({ models: await listClusteringModels({ limit: Number(req.query.limit) || 50 }) });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * @openapi
  * /api/models/register:
  *   post:
  *     tags: [Modelos]
  *     summary: Registra no banco os artefatos atualmente em disco
  *     description: |
- *       Lê ML/artifacts/model_metadata.json (e cluster_metadata.json, se existir)
- *       e grava os metadados técnicos no MongoDB, marcando a versão como ativa e
- *       desativando a anterior. Idempotente por versão.
+ *       Lê ML/artifacts/model_metadata.json e grava os metadados técnicos no
+ *       MongoDB, marcando a versão como ativa e desativando a anterior.
+ *       Idempotente por versão.
  *
  *       Equivalente ao script `npm run ml:register`, disponibilizado como endpoint
  *       para quem treina em uma máquina e registra a partir do serviço.

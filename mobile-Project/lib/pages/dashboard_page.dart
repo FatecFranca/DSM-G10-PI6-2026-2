@@ -14,8 +14,6 @@ import '../widgets/async_builder.dart';
 import '../widgets/charts.dart';
 import '../widgets/ui.dart';
 
-/// Painel — mesma leitura da tela Web: indicadores, distribuições, evolução no
-/// tempo, fila de atenção e análises recentes.
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -116,7 +114,6 @@ class _DashboardBody extends StatelessWidget {
 
     return AppStack(
       children: [
-        // `grid--stats` da Web, com altura uniforme entre todos os cartoes.
         StatGrid(
           children: [
             StatCard(
@@ -350,11 +347,6 @@ class _DashboardBody extends StatelessWidget {
   }
 }
 
-/// Adaptação das tabelas da Web para o celular.
-///
-/// Uma `<table>` de 6 colunas não cabe em 360dp sem rolagem horizontal, que é
-/// ruim de usar com o polegar. Cada linha vira um bloco com as mesmas
-/// informações empilhadas — o conteúdo é o mesmo, muda o arranjo.
 class ListRowTile extends StatelessWidget {
   const ListRowTile({
     super.key,

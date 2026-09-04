@@ -9,11 +9,6 @@ import '../state/i18n_state.dart';
 import '../widgets/app_shell.dart';
 import '../widgets/ui.dart';
 
-/// Tela de acesso.
-///
-/// O painel de marca da Web (`.auth__brand`, com os três destaques) não é
-/// reproduzido: o próprio `global.css` o esconde abaixo de 860px e mostra a
-/// marca compacta — que é o que o [AuthScaffold] faz.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -45,7 +40,6 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       await context.read<AuthState>().login(_email.text.trim(), _password.text);
-      // A navegação é feita pelo redirect do go_router, que observa o AuthState.
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = describeApiError(t, error));

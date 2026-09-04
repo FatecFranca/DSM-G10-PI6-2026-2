@@ -150,8 +150,6 @@ export function FeaturesForm({
 
               const rawValue = values[feature.name];
               const filled = rawValue !== '' && rawValue !== undefined;
-              // numericValue mantém sempre a nota na escala portuguesa canônica,
-              // usada na validação de limites e no envio para a análise.
               const numericValue = filled ? Number(rawValue) : null;
               const displayValue = filled ? round2(Number(rawValue) / factor) : '';
 
