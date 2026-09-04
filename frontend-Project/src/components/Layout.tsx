@@ -24,7 +24,7 @@ export function AppLayout() {
     { to: '/', labelKey: 'nav.dashboard', icon: '◧', visible: true },
     { to: '/students', labelKey: 'nav.students', icon: '☰', visible: true },
     { to: '/analysis', labelKey: 'nav.analysis', icon: '◈', visible: true },
-    { to: '/data-mining', labelKey: 'nav.dataMining', icon: '◔', visible: true },
+    { to: '/data-mining', labelKey: 'nav.dataMining', icon: '◔', visible: can.seeDataMining },
     { to: '/follow-ups', labelKey: 'nav.followUps', icon: '✓', visible: true },
   ];
 

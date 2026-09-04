@@ -68,6 +68,7 @@ class Permissions {
 
   bool get manageUsers => _isAdmin;
   bool get manageInstitutions => _isAdmin;
+  bool get seeDataMining => _isAdmin;
   bool get writeStudents => _isAdmin || _isAnalyst;
   bool get runAnalyses => _isAdmin || _isAnalyst;
   bool get manageFollowUps => _isAdmin || _isAnalyst;

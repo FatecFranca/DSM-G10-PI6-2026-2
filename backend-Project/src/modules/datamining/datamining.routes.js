@@ -1,11 +1,11 @@
 import { Router } from 'express';
 
-import { authenticate } from '../../middlewares/auth.js';
+import { authenticate, authorize, ROLES } from '../../middlewares/auth.js';
 import * as md from '../../services/mdClient.js';
 
 const router = Router();
 
-router.use(authenticate);
+router.use(authenticate, authorize(ROLES.ADMIN));
 
 /**
  * @openapi
@@ -14,6 +14,8 @@ router.use(authenticate);
  *     tags: [Mineração de Dados]
  *     summary: Modelo em uso e seu processo de construção
  *     description: |
+ *       Exclusivo do papel ADMIN.
+ *
  *       Expõe, para a interface, as etapas do processo de Mineração de Dados que o
  *       modelo atravessou: algoritmo escolhido, por que foi escolhido frente aos
  *       candidatos, métricas de avaliação (incluindo matriz de confusão e relatório
@@ -25,6 +27,7 @@ router.use(authenticate);
  *       200:
  *         description: Metadados do modelo ativo
  *       401: { $ref: '#/components/responses/Unauthorized' }
+ *       403: { $ref: '#/components/responses/Forbidden' }
  *       502: { $ref: '#/components/responses/MlServiceError' }
  *       503: { $ref: '#/components/responses/MlUnavailable' }
  */

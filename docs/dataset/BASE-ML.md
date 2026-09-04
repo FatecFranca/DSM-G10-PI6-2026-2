@@ -13,8 +13,4 @@ deve seguir mínimo um e no máximo dois dos critérios abaixo:
 Tarefas - aprendizado:
 
 
-- Classificação
-- Regressão
-- Regra de associação
-- Clustering
-- Recomendação
+- Classificação: https://www.ibm.com/br-pt/think/topics/logistic-regression

@@ -80,7 +80,14 @@ export function App() {
         />
 
         <Route path="analysis" element={<AnalysisPage />} />
-        <Route path="data-mining" element={<DataMiningPage />} />
+        <Route
+          path="data-mining"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <DataMiningPage />
+            </RequireRole>
+          }
+        />
         <Route path="follow-ups" element={<FollowUpsPage />} />
 
         <Route

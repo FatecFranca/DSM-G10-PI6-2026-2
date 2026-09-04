@@ -74,7 +74,13 @@ GoRouter buildRouter(AuthState auth) {
       ),
 
       GoRoute(path: '/analysis', builder: (_, _) => const AnalysisPage()),
-      GoRoute(path: '/data-mining', builder: (_, _) => const DataMiningPage()),
+      GoRoute(
+        path: '/data-mining',
+        builder: (_, _) => const _RoleGuard(
+          roles: [Role.admin],
+          child: DataMiningPage(),
+        ),
+      ),
       GoRoute(path: '/follow-ups', builder: (_, _) => const FollowUpsPage()),
       GoRoute(path: '/profile', builder: (_, _) => const ProfilePage()),
 

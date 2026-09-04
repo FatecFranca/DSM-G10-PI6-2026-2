@@ -22,6 +22,7 @@ interface AuthContextValue {
   can: {
     manageUsers: boolean;
     manageInstitutions: boolean;
+    seeDataMining: boolean;
     writeStudents: boolean;
     runAnalyses: boolean;
     manageFollowUps: boolean;
@@ -38,6 +39,7 @@ function permissionsFor(role: Role | undefined) {
   return {
     manageUsers: isAdmin,
     manageInstitutions: isAdmin,
+    seeDataMining: isAdmin,
     writeStudents: isAdmin || isAnalyst,
     runAnalyses: isAdmin || isAnalyst,
     manageFollowUps: isAdmin || isAnalyst,

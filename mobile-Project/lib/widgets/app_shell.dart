@@ -20,9 +20,11 @@ const _mainItems = [
   _NavItem('/', 'nav.dashboard', Icons.dashboard_outlined, exact: true),
   _NavItem('/students', 'nav.students', Icons.people_outline),
   _NavItem('/analysis', 'nav.analysis', Icons.insights_outlined),
-  _NavItem('/data-mining', 'nav.dataMining', Icons.donut_small_outlined),
   _NavItem('/follow-ups', 'nav.followUps', Icons.checklist_outlined),
 ];
+
+const _dataMiningItem =
+    _NavItem('/data-mining', 'nav.dataMining', Icons.donut_small_outlined);
 
 const _adminItems = [
   _NavItem('/admin/users', 'nav.users', Icons.manage_accounts_outlined),
@@ -181,6 +183,12 @@ class AppDrawer extends StatelessWidget {
     final can = auth.can;
     final location = GoRouterState.of(context).uri.path;
 
+    final visibleMain = [
+      ..._mainItems.take(3),
+      if (can.seeDataMining) _dataMiningItem,
+      ..._mainItems.skip(3),
+    ];
+
     final visibleAdmin = [
       if (can.manageUsers) _adminItems[0],
       if (can.manageInstitutions) _adminItems[1],
@@ -229,7 +237,7 @@ class AppDrawer extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 children: [
-                  for (final item in _mainItems)
+                  for (final item in visibleMain)
                     _DrawerLink(item: item, currentLocation: location),
                   if (visibleAdmin.isNotEmpty) ...[
                     Padding(
