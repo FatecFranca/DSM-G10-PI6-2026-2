@@ -7,9 +7,9 @@ import { paginated } from '../../utils/validate.js';
 import { derivePriority, rankOf } from './priority.js';
 
 const DISCLAIMER =
-  'A classificação é uma ferramenta de apoio à análise, não uma garantia sobre o futuro do ' +
-  'estudante. A confiança é a probabilidade estimada pelo modelo e não passou por calibração ' +
-  'estatística.';
+  'Resultado estatístico destinado a apoiar a análise. A confiança indica a probabilidade ' +
+  'da classe segundo o modelo, aferida no conjunto de teste, e expressa a frequência ' +
+  'observada em perfis semelhantes. Não determina o desfecho de um estudante específico.';
 
 const ANALYSIS_FIELDS = {
   id: true,

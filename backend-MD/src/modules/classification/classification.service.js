@@ -3,8 +3,10 @@ import { runPythonScript } from '../../ml/pythonRunner.js';
 import { validateRecords } from '../../ml/validation.js';
 
 export const CONFIDENCE_DISCLAIMER =
-  'A classificação é apoio à tomada de decisão, não uma garantia sobre o futuro do estudante. ' +
-  'O campo confidence é a probabilidade estimada pelo modelo para a classe escolhida e não passou por calibração estatística.';
+  'Resultado estatístico destinado a apoiar a decisão. O campo confidence é a probabilidade ' +
+  'estimada para a classe escolhida. O pipeline não aplica etapa de calibração posterior; a ' +
+  'aderência entre probabilidade e frequência observada é aferida a cada treino e publicada ' +
+  'em GET /api/models/active, no campo metrics.test_calibration_ece.';
 
 function describeModel(metadata) {
   return {

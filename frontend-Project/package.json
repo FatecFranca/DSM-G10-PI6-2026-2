@@ -11,7 +11,7 @@
     "cypress:open": "cypress open",
     "test": "node scripts/run-e2e.mjs",
     "test:e2e": "cypress run",
-    "test:stress": "node scripts/run-e2e.mjs --spec cypress/e2e/stress.cy.ts --env stress=true"
+    "test:stress": "node scripts/run-e2e.mjs --spec cypress/e2e/stress.cy.ts --expose stress=true"
   },
   "dependencies": {
     "react": "^19.0.0",

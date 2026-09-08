@@ -552,7 +552,7 @@ class Disclaimer extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final t = context.i18n;
-    final message = text ?? '${t.t('analysis.supportTool')} ${t.t('analysis.notCalibrated')}';
+    final message = text ?? '${t.t('analysis.supportTool')} ${t.t('analysis.calibrationNote')}';
 
     return Container(
       width: double.infinity,

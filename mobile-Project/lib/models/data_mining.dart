@@ -97,7 +97,8 @@ class ModelProcessResponse {
     required this.testF1Macro,
     required this.testRecallDropout,
     required this.devAccuracy,
-    required this.overfitGap,
+    required this.generalizationGap,
+    required this.testBalancedAccuracy,
     required this.cvFolds,
     required this.cvAccuracyMean,
     required this.confusionMatrix,
@@ -121,7 +122,8 @@ class ModelProcessResponse {
   final double testF1Macro;
   final double testRecallDropout;
   final double devAccuracy;
-  final double overfitGap;
+  final double generalizationGap;
+  final double testBalancedAccuracy;
   final int cvFolds;
   final double cvAccuracyMean;
   final ConfusionMatrix confusionMatrix;
@@ -166,7 +168,8 @@ class ModelProcessResponse {
       testF1Macro: Json.dbl(evaluation['test_f1_macro']),
       testRecallDropout: Json.dbl(evaluation['test_recall_dropout']),
       devAccuracy: Json.dbl(evaluation['dev_accuracy']),
-      overfitGap: Json.dbl(evaluation['generalization_gap']),
+      generalizationGap: Json.dbl(evaluation['generalization_gap']),
+      testBalancedAccuracy: Json.dbl(evaluation['test_balanced_accuracy']),
       cvFolds: Json.intOf(evaluation['cv_folds']),
       cvAccuracyMean: Json.dbl(evaluation['cv_accuracy_mean']),
       confusionMatrix: ConfusionMatrix.fromJson(Json.map(evaluation['confusion_matrix'])),

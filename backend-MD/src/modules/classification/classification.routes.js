@@ -53,9 +53,11 @@ router.get('/features', getFeatures);
  *       transformações usadas no treino (transformadores persistidos) e devolve
  *       a classe mais provável.
  *
- *       O campo `confidence` é a probabilidade estimada pelo modelo para a classe
- *       escolhida e **não** passou por calibração estatística. O resultado é
- *       apoio à tomada de decisão, não uma garantia sobre o futuro do estudante.
+ *       O campo `confidence` é a probabilidade estimada para a classe escolhida.
+ *       O pipeline não aplica etapa de calibração posterior; a aderência entre
+ *       probabilidade e frequência observada é aferida a cada treino e publicada
+ *       em `GET /api/models/active` (`metrics.test_calibration_ece`). O resultado
+ *       é estatístico e destina-se a apoiar a decisão.
  *
  *       Quando algum valor enviado está fora da faixa observada no treino, a
  *       resposta inclui `warnings` — a predição é feita, mas o modelo está

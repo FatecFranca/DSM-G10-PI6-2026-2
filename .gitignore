@@ -28,6 +28,9 @@ frontend-Project/tsconfig.tsbuildinfo
 # (android/, ios/, windows/), mas este repositorio mantem um unico arquivo na
 # raiz. As regras abaixo sao as daqueles arquivos, com o prefixo do modulo.
 
+# Contexto local de IA, como nos demais modulos
+mobile-Project/.IA
+
 # Artefatos de build e cache de ferramenta
 mobile-Project/.dart_tool
 mobile-Project/.flutter-plugins

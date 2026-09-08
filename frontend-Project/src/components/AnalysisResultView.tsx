@@ -46,7 +46,7 @@ export function AnalysisResultView({ result }: { result: AnalysisResult }) {
               <div className="result-hero__value">
                 {analysis.confidence === null ? '—' : formatPercent(analysis.confidence, 1)}
               </div>
-              <p className="result-hero__note">{t('analysis.notCalibrated')}</p>
+              <p className="result-hero__note">{t('analysis.calibrationNote')}</p>
             </div>
 
             <div className="result-hero__block">

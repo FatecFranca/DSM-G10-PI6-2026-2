@@ -22,9 +22,11 @@ const definition = {
       'Toda requisição precisa da API Key de serviço (seção 11.1).',
       '',
       '### Natureza do resultado',
-      'A classificação é **apoio à tomada de decisão**, não uma garantia sobre o futuro',
-      'de um estudante. `confidence` é a probabilidade estimada pelo modelo para a classe',
-      'escolhida e não passou por calibração estatística.',
+      'A classificação é um resultado estatístico destinado a apoiar a decisão.',
+      '`confidence` é a probabilidade estimada para a classe escolhida. O pipeline não',
+      'aplica etapa de calibração posterior; a aderência entre probabilidade e frequência',
+      'observada é aferida a cada treino e publicada em `GET /api/models/active`, no campo',
+      '`metrics.test_calibration_ece`.',
       '',
       '### Camada de ML',
       'O pipeline é Python (scikit-learn), acionado pelo Express via `child_process`.',
@@ -152,7 +154,9 @@ const definition = {
             type: 'number',
             nullable: true,
             example: 0.78,
-            description: 'Probabilidade estimada para a classe escolhida. Não calibrada.',
+            description:
+              'Probabilidade estimada para a classe escolhida. Aderência aferida a cada ' +
+              'treino: ver `metrics.test_calibration_ece` em `GET /api/models/active`.',
           },
           probabilities: {
             type: 'object',
