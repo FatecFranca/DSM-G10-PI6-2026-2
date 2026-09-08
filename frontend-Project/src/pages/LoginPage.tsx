@@ -136,13 +136,6 @@ export function LoginPage() {
                 </div>
               </div>
             </form>
-
-            <div className="auth__footer">
-              <div className="auth__footer-note">
-                <span aria-hidden="true">ℹ</span>
-                <span>{t('analysis.supportTool')}</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
