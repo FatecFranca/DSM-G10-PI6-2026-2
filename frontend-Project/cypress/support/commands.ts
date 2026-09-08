@@ -1,5 +1,6 @@
 import {
   randomFeatureValues,
+  randomFollowUp,
   randomInstitution,
   randomStudentBasics,
   randomUser,
@@ -40,23 +41,35 @@ declare global {
       apiEnsureInstitution(): Chainable<ApiInstitution>
       apiCreateUser(role?: Role, overrides?: Partial<ReturnType<typeof randomUser>> & { institutionId?: string }): Chainable<ApiUser>
       apiCreateStudent(institutionId: string, overrides?: Record<string, unknown>): Chainable<ApiStudent>
-      apiRunAnalysis(studentId: string): Chainable<unknown>
+      apiRunAnalysis(studentId: string, options?: { failOnStatusCode?: boolean }): Chainable<unknown>
+      apiCreateFollowUp(studentId: string, overrides?: Partial<ReturnType<typeof randomFollowUp>>): Chainable<unknown>
     }
   }
 }
 
+// O token vem do login, não da configuração: guardá-lo em Cypress.expose() o
+// entregaria ao código do navegador, que é justamente o que a depreciação evita.
+let authToken: string | null = null
+
+function apiBaseUrl(): string {
+  return Cypress.expose('apiBaseUrl') as string
+}
+
 function authHeaders() {
-  return { Authorization: `Bearer ${Cypress.env('authToken')}` }
+  if (!authToken) {
+    throw new Error('authHeaders: chame cy.loginByApi() antes.')
+  }
+  return { Authorization: `Bearer ${authToken}` }
 }
 
 Cypress.Commands.add('loginByApi', (email = 'admin@pi6.local', password = 'Admin@123456') => {
-  cy.request('POST', `${Cypress.env('apiBaseUrl')}/auth/login`, { email, password }).then((response) => {
-    Cypress.env('authToken', response.body.token)
+  cy.request('POST', `${apiBaseUrl()}/auth/login`, { email, password }).then((response) => {
+    authToken = response.body.token
   })
 })
 
 Cypress.Commands.add('visitAuthenticated', (path = '/') => {
-  const token = Cypress.env('authToken')
+  const token = authToken
   if (!token) {
     throw new Error('visitAuthenticated: chame cy.loginByApi() antes.')
   }
@@ -72,7 +85,7 @@ Cypress.Commands.add('apiFeatureContract', () => {
   return cy
     .request({
       method: 'GET',
-      url: `${Cypress.env('apiBaseUrl')}/students/feature-contract`,
+      url: `${apiBaseUrl()}/students/feature-contract`,
       headers: authHeaders(),
     })
     .its('body')
@@ -83,7 +96,7 @@ Cypress.Commands.add('apiCreateInstitution', (overrides = {}) => {
   return cy
     .request({
       method: 'POST',
-      url: `${Cypress.env('apiBaseUrl')}/institutions`,
+      url: `${apiBaseUrl()}/institutions`,
       headers: authHeaders(),
       body: payload,
     })
@@ -94,7 +107,7 @@ Cypress.Commands.add('apiEnsureInstitution', () => {
   return cy
     .request({
       method: 'GET',
-      url: `${Cypress.env('apiBaseUrl')}/institutions?limit=1&active=true`,
+      url: `${apiBaseUrl()}/institutions?limit=1&active=true`,
       headers: authHeaders(),
     })
     .then((response) => {
@@ -115,7 +128,7 @@ Cypress.Commands.add('apiCreateUser', (role = 'VIEWER', overrides = {}) => {
     return cy
       .request({
         method: 'POST',
-        url: `${Cypress.env('apiBaseUrl')}/users`,
+        url: `${apiBaseUrl()}/users`,
         headers: authHeaders(),
         body: payload,
       })
@@ -139,7 +152,7 @@ Cypress.Commands.add('apiCreateStudent', (institutionId, overrides = {}) => {
     return cy
       .request({
         method: 'POST',
-        url: `${Cypress.env('apiBaseUrl')}/students`,
+        url: `${apiBaseUrl()}/students`,
         headers: authHeaders(),
         body: payload,
       })
@@ -147,12 +160,24 @@ Cypress.Commands.add('apiCreateStudent', (institutionId, overrides = {}) => {
   })
 })
 
-Cypress.Commands.add('apiRunAnalysis', (studentId) => {
+Cypress.Commands.add('apiRunAnalysis', (studentId, options = {}) => {
   return cy
     .request({
       method: 'POST',
-      url: `${Cypress.env('apiBaseUrl')}/analyses/student/${studentId}`,
+      url: `${apiBaseUrl()}/analyses/student/${studentId}`,
       headers: authHeaders(),
+      failOnStatusCode: options.failOnStatusCode ?? true,
+    })
+    .its('body')
+})
+
+Cypress.Commands.add('apiCreateFollowUp', (studentId, overrides = {}) => {
+  return cy
+    .request({
+      method: 'POST',
+      url: `${apiBaseUrl()}/follow-ups`,
+      headers: authHeaders(),
+      body: { studentId, ...randomFollowUp(), ...overrides },
     })
     .its('body')
 })
