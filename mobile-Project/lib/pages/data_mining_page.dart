@@ -59,6 +59,11 @@ class _ModelProcess extends StatelessWidget {
                   value: t.formatPercent(model.testAccuracy, 1),
                 ),
                 StatCard(
+                  label: t.t('dataMining.balancedAccuracy'),
+                  value: t.formatPercent(model.testBalancedAccuracy, 1),
+                  meta: t.t('dataMining.balancedAccuracyHint'),
+                ),
+                StatCard(
                   label: t.t('dataMining.testF1'),
                   value: t.formatNumber(model.testF1Macro, maximumFractionDigits: 4),
                 ),
@@ -69,11 +74,13 @@ class _ModelProcess extends StatelessWidget {
                   tone: StatTone.accent,
                 ),
                 StatCard(
-                  label: t.t('dataMining.overfitGap'),
-                  value: t.formatNumber(model.overfitGap, maximumFractionDigits: 4),
+                  label: t.t('dataMining.testGap'),
+                  value: t.formatNumber(model.generalizationGap, maximumFractionDigits: 4),
                   meta: '${t.t('dataMining.devAccuracy')}: '
                       '${t.formatPercent(model.devAccuracy, 1)}',
-                  tone: model.overfitGap > 0.1 ? StatTone.warning : StatTone.success,
+                  tone: model.generalizationGap > 0.1
+                      ? StatTone.warning
+                      : StatTone.success,
                 ),
               ],
             ),
@@ -286,7 +293,7 @@ class _CandidateTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          metric(t.t('dataMining.overfitGap'), candidate.overfitGap),
+          metric(t.t('dataMining.cvGap'), candidate.overfitGap),
         ],
       ),
     );

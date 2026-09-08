@@ -400,7 +400,7 @@ export function Disclaimer({ children }: { children?: ReactNode }) {
   return (
     <p className="disclaimer">
       <span aria-hidden="true">ℹ</span>
-      <span>{children ?? `${t('analysis.supportTool')} ${t('analysis.notCalibrated')}`}</span>
+      <span>{children ?? `${t('analysis.supportTool')} ${t('analysis.calibrationNote')}`}</span>
     </p>
   );
 }

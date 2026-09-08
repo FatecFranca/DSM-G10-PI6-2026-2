@@ -45,7 +45,7 @@ class AnalysisResultView extends StatelessWidget {
                 value: result.confidence == null
                     ? '—'
                     : t.formatPercent(result.confidence!, 1),
-                note: t.t('analysis.notCalibrated'),
+                note: t.t('analysis.calibrationNote'),
                 extra: ConfidenceMeter(
                   value: result.confidence,
                   classification: classification,

@@ -6,8 +6,9 @@ Dropout and Academic Success Classification**) para apoiar instituições educac
 sociais de Franca/SP na identificação e priorização de estudantes que merecem
 acompanhamento.
 
-> A classificação produzida é **apoio à tomada de decisão**, não uma garantia sobre o
-> futuro de um estudante. Os scores de confiança não são probabilidades calibradas.
+> A classificação produzida é um resultado estatístico destinado a apoiar a decisão. Os
+> scores de confiança são aferidos no conjunto de teste e expressam a frequência observada
+> em perfis semelhantes, sem determinar o desfecho de um caso individual.
 
 ---
 

@@ -64,6 +64,11 @@ function ModelProcess() {
           label={t('dataMining.testAccuracy')}
           value={formatPercent(evaluation.test_accuracy, 1)}
         />
+        <Stat
+          label={t('dataMining.balancedAccuracy')}
+          value={formatPercent(evaluation.test_balanced_accuracy, 1)}
+          meta={t('dataMining.balancedAccuracyHint')}
+        />
         <Stat label={t('dataMining.testF1')} value={formatNumber(evaluation.test_f1_macro, { maximumFractionDigits: 4 })} />
         <Stat
           label={t('dataMining.recallDropout')}
@@ -72,7 +77,7 @@ function ModelProcess() {
           tone="accent"
         />
         <Stat
-          label={t('dataMining.overfitGap')}
+          label={t('dataMining.testGap')}
           value={formatNumber(evaluation.generalization_gap, { maximumFractionDigits: 4 })}
           meta={`${t('dataMining.devAccuracy')}: ${formatPercent(evaluation.dev_accuracy, 1)}`}
           tone={evaluation.generalization_gap > 0.1 ? 'warning' : 'success'}
@@ -174,7 +179,7 @@ function ModelProcess() {
                 <th className="table__num">{t('dataMining.cvF1')}</th>
                 <th className="table__num">{t('dataMining.recallDropout')}</th>
                 <th className="table__num">{t('dataMining.selectionScore')}</th>
-                <th className="table__num">{t('dataMining.overfitGap')}</th>
+                <th className="table__num">{t('dataMining.cvGap')}</th>
               </tr>
             </thead>
             <tbody>

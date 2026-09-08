@@ -7,9 +7,11 @@ Classifica estudantes entre `Dropout`, `Enrolled` e `Graduate` e expõe o proces
 Mineração de Dados que produziu o modelo. Não tem tela, não gerencia usuários e não
 guarda dado de negócio — quem faz isso é o `backend-Project`, o único consumidor previsto deste serviço.
 
-> A classificação é **apoio à tomada de decisão**, não uma garantia sobre o futuro de um
-> estudante. O campo `confidence` é a probabilidade estimada pelo modelo e não passou por
-> calibração estatística.
+> A classificação é um resultado estatístico destinado a apoiar a decisão. O campo
+> `confidence` é a probabilidade estimada para a classe escolhida. O pipeline não aplica
+> etapa de calibração posterior; a aderência entre probabilidade e frequência observada é
+> aferida a cada treino e publicada em `metrics.test_calibration_ece`
+> (`GET /api/models/active`).
 
 ---
 
