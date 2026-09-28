@@ -98,3 +98,6 @@ mobile-Project/ios/**/*.perspectivev3
 mobile-Project/windows/flutter/ephemeral
 mobile-Project/windows/x64
 mobile-Project/windows/x86
+
+#Aiven
+docs/aiven
