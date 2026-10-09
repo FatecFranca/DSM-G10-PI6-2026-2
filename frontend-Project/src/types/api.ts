@@ -165,12 +165,37 @@ export interface AnalysisRecord {
   requestedBy?: { id: string; name: string } | null;
 }
 
+export interface BatchSkipped {
+  studentId: string;
+  reason: string;
+  details?: unknown;
+}
+
 export interface BatchAnalysisResponse {
   analyzed: number;
-  skipped: { studentId: string; reason: string; details?: unknown }[];
+  skipped: BatchSkipped[];
   model: { version: string; algorithm: string };
   results: AnalysisResult[];
   disclaimer: string;
+}
+
+export type AnalysisJobStatus = 'QUEUED' | 'DONE' | 'FAILED';
+
+export interface AnalysisJob {
+  id: string;
+  status: AnalysisJobStatus;
+  requested: number;
+  analyzed: number;
+  skipped: BatchSkipped[];
+  error: { code: string; message: string } | null;
+  model: { version: string; algorithm: string } | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export interface BatchOutcome {
+  analyzed: number;
+  skipped: BatchSkipped[];
 }
 
 export interface FollowUp {

@@ -102,7 +102,7 @@ class _ModelProcess extends StatelessWidget {
                   (
                     term: t.t('dataMining.datasetTrain'),
                     value: DefinitionValue(
-                      t.formatNumber(Json.intOf(understanding['rows_train'])),
+                      t.formatNumber(Json.intOf(understanding['rows_development'])),
                     ),
                   ),
                   (

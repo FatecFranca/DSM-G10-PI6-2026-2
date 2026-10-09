@@ -134,7 +134,7 @@ export async function analyzeAdHoc(rawFeatures) {
   };
 }
 
-export async function analyzeBatch(studentIds, user) {
+export async function selectEligibleStudents(studentIds, user) {
   const where = { id: { in: studentIds }, ...institutionScope(user) };
 
   const students = await prisma.student.findMany({
@@ -173,42 +173,63 @@ export async function analyzeBatch(studentIds, user) {
     );
   }
 
+  return { eligible, skipped };
+}
+
+export async function persistBatchPrediction(item, prediction, model, { requestedById, jobId } = {}) {
+  const recommendation = derivePriority(prediction);
+
+  const [analysis] = await prisma.$transaction([
+    prisma.analysis.create({
+      data: {
+        studentId: item.studentId,
+        institutionId: item.institutionId,
+        classification: prediction.classification,
+        classId: prediction.classId,
+        confidence: prediction.confidence,
+        probabilities: prediction.probabilities ?? undefined,
+        modelVersion: model.version,
+        algorithm: model.algorithm,
+        featuresSnapshot: item.features,
+        priority: recommendation.priority,
+        requestedById,
+        jobId,
+      },
+      select: ANALYSIS_FIELDS,
+    }),
+    prisma.student.update({
+      where: { id: item.studentId },
+      data: {
+        lastClassification: prediction.classification,
+        lastConfidence: prediction.confidence,
+        lastAnalysisAt: new Date(),
+        lastPriority: recommendation.priority,
+        lastPriorityRank: rankOf(recommendation.priority),
+      },
+    }),
+  ]);
+
+  return { analysis, recommendation };
+}
+
+export async function analyzeBatch(studentIds, user) {
+  const { eligible, skipped } = await selectEligibleStudents(studentIds, user);
+
   const records = eligible.map((item) => item.features);
   const batch = await md.classifyBatch(records);
 
   const results = [];
   for (const [index, item] of eligible.entries()) {
-    const prediction = batch.results[index];
-    const recommendation = derivePriority(prediction);
-
-    const [analysis] = await prisma.$transaction([
-      prisma.analysis.create({
-        data: {
-          studentId: item.student.id,
-          institutionId: item.student.institutionId,
-          classification: prediction.classification,
-          classId: prediction.classId,
-          confidence: prediction.confidence,
-          probabilities: prediction.probabilities ?? undefined,
-          modelVersion: batch.model.version,
-          algorithm: batch.model.algorithm,
-          featuresSnapshot: item.features,
-          priority: recommendation.priority,
-          requestedById: user.id,
-        },
-        select: ANALYSIS_FIELDS,
-      }),
-      prisma.student.update({
-        where: { id: item.student.id },
-        data: {
-          lastClassification: prediction.classification,
-          lastConfidence: prediction.confidence,
-          lastAnalysisAt: new Date(),
-          lastPriority: recommendation.priority,
-          lastPriorityRank: rankOf(recommendation.priority),
-        },
-      }),
-    ]);
+    const { analysis, recommendation } = await persistBatchPrediction(
+      {
+        studentId: item.student.id,
+        institutionId: item.student.institutionId,
+        features: item.features,
+      },
+      batch.results[index],
+      batch.model,
+      { requestedById: user.id },
+    );
 
     results.push(
       present(analysis, recommendation, {

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { isMessagingEnabled } from '../../lib/messaging.js';
 import { authenticate, authorize, ROLES } from '../../middlewares/auth.js';
 import { parsePagination, validate, validateObjectId } from '../../utils/validate.js';
 import {
@@ -9,6 +10,7 @@ import {
   getAnalysis,
   listAnalyses,
 } from './analyses.service.js';
+import { enqueueBatch, getJob } from './analysisJobs.js';
 
 const router = Router();
 
@@ -118,6 +120,11 @@ router.post('/simulate', authorize(...RUN_ROLES), async (req, res, next) => {
  *       Uma única ida ao serviço de IA para todo o lote. Estudantes inaptos
  *       (inativos, cadastro incompleto, fora do escopo) são devolvidos em
  *       `skipped` com o motivo — nunca ignorados em silêncio.
+ *
+ *       **Com mensageria ativa** (`KAFKA_ENABLED=true`), o lote é assíncrono: o
+ *       pedido é publicado no Kafka, a resposta é `202` com o job em `QUEUED`, e o
+ *       andamento é consultado em `GET /api/analyses/jobs/{id}`. Sem mensageria,
+ *       a resposta é `200` com os resultados, como antes.
  *     requestBody:
  *       required: true
  *       content:
@@ -142,9 +149,22 @@ router.post('/simulate', authorize(...RUN_ROLES), async (req, res, next) => {
  *                 analyzed: { type: integer }
  *                 skipped:  { type: array, items: { type: object } }
  *                 results:  { type: array, items: { $ref: '#/components/schemas/AnalysisResult' } }
+ *       202:
+ *         description: Lote enfileirado (mensageria ativa)
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/AnalysisJob' }
  *       403: { $ref: '#/components/responses/Forbidden' }
  *       422: { $ref: '#/components/responses/ValidationError' }
  *       502: { $ref: '#/components/responses/MlServiceError' }
+ *       503:
+ *         description: Mensageria indisponível — o lote não foi enfileirado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *             example:
+ *               error: MESSAGING_UNAVAILABLE
+ *               message: Não foi possível enfileirar o lote de análise. Tente novamente em instantes.
  */
 router.post('/batch', authorize(...RUN_ROLES), async (req, res, next) => {
   try {
@@ -163,12 +183,40 @@ router.post('/batch', authorize(...RUN_ROLES), async (req, res, next) => {
       });
       return;
     }
-    res.json(
-      await analyzeBatch(
-        ids.map((id) => validateObjectId(id, 'studentIds')),
-        req.user,
-      ),
-    );
+    const studentIds = ids.map((id) => validateObjectId(id, 'studentIds'));
+
+    if (isMessagingEnabled()) {
+      res.status(202).json(await enqueueBatch(studentIds, req.user));
+      return;
+    }
+    res.json(await analyzeBatch(studentIds, req.user));
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @openapi
+ * /api/analyses/jobs/{id}:
+ *   get:
+ *     tags: [Análises]
+ *     summary: Andamento de um lote de análise enfileirado
+ *     description: |
+ *       `QUEUED` enquanto o serviço de IA não devolve o resultado pelo Kafka;
+ *       `DONE` quando as análises foram gravadas no histórico; `FAILED` com o
+ *       motivo em `error`. Visível apenas para quem pediu o lote e para ADMIN.
+ *     parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
+ *     responses:
+ *       200:
+ *         description: Job
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/AnalysisJob' }
+ *       404: { $ref: '#/components/responses/NotFound' }
+ */
+router.get('/jobs/:id', async (req, res, next) => {
+  try {
+    res.json(await getJob(validateObjectId(req.params.id), req.user));
   } catch (error) {
     next(error);
   }

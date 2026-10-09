@@ -111,11 +111,44 @@ class AnalysesService {
         const <String, dynamic>{},
       ));
 
-  Future<BatchAnalysisResponse> runBatch(List<String> studentIds) async =>
-      BatchAnalysisResponse.fromJson(await _api.post<Map<String, dynamic>>(
-        '/analyses/batch',
-        {'studentIds': studentIds},
-      ));
+  static const _jobPollInterval = Duration(seconds: 2);
+  static const _jobPollTimeout = Duration(minutes: 5);
+
+  Future<BatchAnalysisResponse> runBatch(List<String> studentIds) async {
+    final json = await _api.post<Map<String, dynamic>>(
+      '/analyses/batch',
+      {'studentIds': studentIds},
+    );
+    if (!AnalysisJob.looksLikeJob(json)) return BatchAnalysisResponse.fromJson(json);
+
+    var job = AnalysisJob.fromJson(json);
+    final deadline = DateTime.now().add(_jobPollTimeout);
+
+    while (job.isQueued) {
+      if (DateTime.now().isAfter(deadline)) {
+        throw ApiException(
+          0,
+          'ANALYSIS_JOB_PENDING',
+          'O lote ainda está em processamento. Os resultados aparecerão no histórico ao concluir.',
+        );
+      }
+      await Future<void>.delayed(_jobPollInterval);
+      job = await getJob(job.id);
+    }
+
+    if (job.isFailed) {
+      throw ApiException(
+        502,
+        job.errorCode ?? 'ANALYSIS_JOB_FAILED',
+        job.errorMessage ?? 'O lote de análise falhou.',
+      );
+    }
+
+    return BatchAnalysisResponse(analyzed: job.analyzed, skipped: job.skipped);
+  }
+
+  Future<AnalysisJob> getJob(String id) async =>
+      AnalysisJob.fromJson(await _api.get<Map<String, dynamic>>('/analyses/jobs/$id'));
 
   Future<AnalysisResult> simulate(Map<String, double> features) async =>
       AnalysisResult.fromJson(await _api.post<Map<String, dynamic>>(

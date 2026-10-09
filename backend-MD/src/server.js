@@ -1,11 +1,15 @@
 import { assertEnv, env } from './config/env.js';
 import { createApp } from './app.js';
+import { isMessagingEnabled } from './lib/messaging.js';
 import { disconnectPrisma } from './lib/prisma.js';
 import { getMlStatus } from './ml/artifacts.js';
+import { startClassificationConsumer } from './modules/classification/classification.consumer.js';
 
 assertEnv();
 
 const app = createApp();
+
+let consumer = null;
 
 function handleListenError(error) {
   if (error.code === 'EADDRINUSE') {
@@ -41,6 +45,13 @@ const server = app.listen(env.PORT, async () => {
   } catch (error) {
     console.warn('[backend-MD] AVISO: não foi possível inspecionar a camada de ML:', error.message);
   }
+
+  if (isMessagingEnabled()) {
+    consumer = startClassificationConsumer();
+    console.log('[backend-MD] mensageria: ativa (Kafka REST)');
+  } else {
+    console.log('[backend-MD] mensageria: desativada — atendendo apenas por HTTP');
+  }
 });
 
 server.on('error', handleListenError);
@@ -48,6 +59,7 @@ server.on('error', handleListenError);
 async function shutdown(signal) {
   console.log(`\n[backend-MD] ${signal} recebido, encerrando...`);
   server.close(async () => {
+    await consumer?.stop();
     await disconnectPrisma();
     console.log('[backend-MD] encerrado.');
     process.exit(0);

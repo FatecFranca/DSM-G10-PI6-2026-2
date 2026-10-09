@@ -136,3 +136,40 @@ class BatchAnalysisResponse {
         skipped: Json.list(json['skipped']).length,
       );
 }
+
+class AnalysisJob {
+  const AnalysisJob({
+    required this.id,
+    required this.status,
+    required this.analyzed,
+    required this.skipped,
+    this.errorCode,
+    this.errorMessage,
+  });
+
+  final String id;
+
+  final String status;
+  final int analyzed;
+  final int skipped;
+  final String? errorCode;
+  final String? errorMessage;
+
+  bool get isQueued => status == 'QUEUED';
+  bool get isFailed => status == 'FAILED';
+
+  static bool looksLikeJob(Map<String, dynamic> json) =>
+      json.containsKey('status') && json.containsKey('requested');
+
+  factory AnalysisJob.fromJson(Map<String, dynamic> json) {
+    final error = Json.mapOrNull(json['error']);
+    return AnalysisJob(
+      id: Json.str(json['id']),
+      status: Json.str(json['status']),
+      analyzed: Json.intOf(json['analyzed']),
+      skipped: Json.list(json['skipped']).length,
+      errorCode: Json.strOrNull(error?['code']),
+      errorMessage: Json.strOrNull(error?['message']),
+    );
+  }
+}

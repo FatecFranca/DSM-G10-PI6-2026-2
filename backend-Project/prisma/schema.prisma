@@ -26,6 +26,12 @@ enum Priority {
   HIGH
 }
 
+enum AnalysisJobStatus {
+  QUEUED
+  DONE
+  FAILED
+}
+
 model User {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
@@ -45,10 +51,11 @@ model User {
   passwordResetTokenHash String?
   passwordResetExpiresAt DateTime?
 
-  createdStudents  Student[]  @relation("StudentCreatedBy")
-  requestedAnalyses Analysis[] @relation("AnalysisRequestedBy")
-  assignedFollowUps FollowUp[] @relation("FollowUpAssignedTo")
-  createdFollowUps  FollowUp[] @relation("FollowUpCreatedBy")
+  createdStudents       Student[]     @relation("StudentCreatedBy")
+  requestedAnalyses     Analysis[]    @relation("AnalysisRequestedBy")
+  requestedAnalysisJobs AnalysisJob[] @relation("AnalysisJobRequestedBy")
+  assignedFollowUps     FollowUp[]    @relation("FollowUpAssignedTo")
+  createdFollowUps      FollowUp[]    @relation("FollowUpCreatedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -149,16 +156,49 @@ model Analysis {
   requestedById String? @db.ObjectId
   requestedBy   User?   @relation("AnalysisRequestedBy", fields: [requestedById], references: [id])
 
+  jobId String?      @db.ObjectId
+  job   AnalysisJob? @relation(fields: [jobId], references: [id])
+
   followUps FollowUp[]
 
   createdAt DateTime @default(now())
 
+  @@index([jobId, studentId])
   @@index([studentId, createdAt])
   @@index([institutionId, createdAt])
   @@index([classification])
   @@index([priority])
   @@index([createdAt])
   @@map("analyses")
+}
+
+model AnalysisJob {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  status AnalysisJobStatus @default(QUEUED)
+
+  items Json
+
+  requested Int
+  analyzed  Int  @default(0)
+  skipped   Json
+
+  error Json?
+
+  modelVersion String?
+  algorithm    String?
+
+  requestedById String? @db.ObjectId
+  requestedBy   User?   @relation("AnalysisJobRequestedBy", fields: [requestedById], references: [id])
+
+  analyses Analysis[]
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([requestedById, createdAt])
+  @@index([status])
+  @@map("analysis_jobs")
 }
 
 model FollowUp {

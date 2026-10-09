@@ -52,13 +52,33 @@ export const env = {
   ML_TIMEOUT_MS: toInt(process.env.ML_TIMEOUT_MS, 30000),
   ML_MAX_BATCH_SIZE: toInt(process.env.ML_MAX_BATCH_SIZE, 500),
   ML_MAX_CONCURRENCY: toInt(process.env.ML_MAX_CONCURRENCY, Math.max(2, os.cpus().length - 1)),
+
+  KAFKA_ENABLED: process.env.KAFKA_ENABLED === 'true',
+  KAFKA_REST_URL: process.env.KAFKA_REST_URL ?? '',
+  KAFKA_REST_USERNAME: process.env.KAFKA_REST_USERNAME ?? '',
+  KAFKA_REST_PASSWORD: process.env.KAFKA_REST_PASSWORD ?? '',
+  KAFKA_TOPIC_ANALYSIS_REQUESTED: process.env.KAFKA_TOPIC_ANALYSIS_REQUESTED ?? '',
+  KAFKA_TOPIC_ANALYSIS_COMPLETED: process.env.KAFKA_TOPIC_ANALYSIS_COMPLETED ?? '',
+  KAFKA_CONSUMER_GROUP: process.env.KAFKA_CONSUMER_GROUP ?? '',
 };
+
+const KAFKA_VARS = [
+  'KAFKA_REST_URL',
+  'KAFKA_REST_USERNAME',
+  'KAFKA_REST_PASSWORD',
+  'KAFKA_TOPIC_ANALYSIS_REQUESTED',
+  'KAFKA_TOPIC_ANALYSIS_COMPLETED',
+  'KAFKA_CONSUMER_GROUP',
+];
+
+export const missingKafkaVars = () => KAFKA_VARS.filter((name) => !env[name]);
 
 export function assertEnv() {
   const missing = [];
 
   if (!env.DB_URL) missing.push('DB_URL');
   if (!env.MD_API_KEY) missing.push('MD_API_KEY');
+  if (env.KAFKA_ENABLED) missing.push(...missingKafkaVars());
 
   if (missing.length === 0) return;
 

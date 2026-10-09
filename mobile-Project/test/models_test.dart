@@ -138,4 +138,41 @@ void main() {
     expect(student.analyses.single.classification, Classification.enrolled);
     expect(student.followUps, isEmpty);
   });
+
+  group('AnalysisJob (lote via mensageria)', () {
+    test('distingue o job do resultado síncrono do lote', () {
+      expect(
+        AnalysisJob.looksLikeJob({'id': 'j1', 'status': 'QUEUED', 'requested': 3}),
+        isTrue,
+      );
+      expect(AnalysisJob.looksLikeJob({'analyzed': 3, 'skipped': []}), isFalse);
+    });
+
+    test('lê status, contagens e o erro de um job que falhou', () {
+      final job = AnalysisJob.fromJson({
+        'id': 'j1',
+        'status': 'FAILED',
+        'requested': 2,
+        'analyzed': 0,
+        'skipped': [
+          {'studentId': 's9', 'reason': 'STUDENT_INACTIVE'},
+        ],
+        'error': {'code': 'MODEL_NOT_TRAINED', 'message': 'Sem modelo.'},
+      });
+
+      expect(job.isFailed, isTrue);
+      expect(job.isQueued, isFalse);
+      expect(job.skipped, 1);
+      expect(job.errorCode, 'MODEL_NOT_TRAINED');
+      expect(job.errorMessage, 'Sem modelo.');
+    });
+
+    test('tolera job sem erro nem skipped', () {
+      final job = AnalysisJob.fromJson({'id': 'j2', 'status': 'QUEUED'});
+
+      expect(job.isQueued, isTrue);
+      expect(job.skipped, 0);
+      expect(job.errorCode, isNull);
+    });
+  });
 }

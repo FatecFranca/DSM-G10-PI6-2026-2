@@ -84,7 +84,7 @@ export async function listModels({ limit = 50 } = {}) {
     summary: {
       testAccuracy: model.metrics?.test_accuracy,
       testF1Macro: model.metrics?.test_f1_macro,
-      trainAccuracy: model.metrics?.train_accuracy,
+      devAccuracy: model.metrics?.dev_accuracy,
       overfitGap: model.metrics?.overfit_gap,
       datasetSha256: model.dataset?.sha256,
       datasetRows: model.dataset?.rows_total,

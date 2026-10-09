@@ -100,7 +100,7 @@ function ModelProcess() {
             {
               term: t('dataMining.datasetTrain'),
               value: formatNumber(
-                Number((process.dataUnderstanding as Record<string, unknown>).rows_train ?? 0),
+                Number((process.dataUnderstanding as Record<string, unknown>).rows_development ?? 0),
               ),
             },
             {

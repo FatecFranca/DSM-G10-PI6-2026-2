@@ -1,11 +1,15 @@
 import { assertEnv, env } from './config/env.js';
 import { createApp } from './app.js';
+import { isMessagingEnabled } from './lib/messaging.js';
 import { checkDatabase, disconnectPrisma } from './lib/prisma.js';
+import { startAnalysisJobsConsumer } from './modules/analyses/analysisJobs.js';
 import { checkMdService } from './services/mdClient.js';
 
 assertEnv();
 
 const app = createApp();
+
+let consumer = null;
 
 function handleListenError(error) {
   if (error.code === 'EADDRINUSE') {
@@ -46,6 +50,13 @@ const server = app.listen(env.PORT, async () => {
         'as rotas de análise responderão 503 até ele subir.',
     );
   }
+
+  if (isMessagingEnabled()) {
+    consumer = startAnalysisJobsConsumer();
+    console.log('[backend-Project] mensageria: ativa (Kafka REST) — lote de análise assíncrono');
+  } else {
+    console.log('[backend-Project] mensageria: desativada — lote de análise síncrono por HTTP');
+  }
 });
 
 server.on('error', handleListenError);
@@ -53,6 +64,7 @@ server.on('error', handleListenError);
 async function shutdown(signal) {
   console.log(`\n[backend-Project] ${signal} recebido, encerrando...`);
   server.close(async () => {
+    await consumer?.stop();
     await disconnectPrisma();
     console.log('[backend-Project] encerrado.');
     process.exit(0);

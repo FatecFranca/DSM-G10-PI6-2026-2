@@ -210,6 +210,29 @@ curl -X POST http://localhost:3003/api/classify \
 }
 ```
 
+### Mensageria (Kafka REST, Aiven)
+
+Além da API HTTP, o serviço atende o **lote de análise** pelo Kafka quando
+`KAFKA_ENABLED=true`. O consumidor roda dentro do mesmo processo Node e usa o mesmo
+`classifyBatch` (e o mesmo `pythonRunner.js`) do `POST /api/classify/batch` — não há
+serviço Python separado.
+
+```text
+consome pae.analysis.requested  { jobId, records: [atributos...] }
+publica pae.analysis.completed  { jobId, status: "SUCCEEDED", model, results }
+                              ou { jobId, status: "FAILED", error: { code, message } }
+```
+
+- A mensagem de pedido **não identifica o estudante**: só atributos. Quem liga resultado
+  a estudante é o `backend-Project`, pelo índice do registro.
+- Pedido inválido não trava o consumidor: vira resposta `FAILED` (ex.: `INVALID_FEATURES`)
+  e o offset é confirmado. Só falha ao publicar a resposta provoca nova tentativa.
+- Arquivos: `src/lib/kafkaRest.js` (cliente REST, idêntico ao do `backend-Project`),
+  `src/lib/messaging.js` (liga/desliga pelo `.env`) e
+  `src/modules/classification/classification.consumer.js`.
+- Variáveis `KAFKA_*` no `.env.example`. O grupo de consumo deste serviço
+  (`KAFKA_CONSUMER_GROUP`) precisa ser diferente do usado no `backend-Project`.
+
 ### Erros
 
 Formato único: `{ "error": "<CODE>", "message": "...", "details": ... }`
@@ -241,10 +264,13 @@ backend-MD/
 ├── prisma/schema.prisma         MlModel
 └── src/
     ├── config/                  env, swagger
-    ├── lib/prisma.js            único acesso ao MongoDB
+    ├── lib/
+    │   ├── prisma.js            único acesso ao MongoDB
+    │   ├── kafkaRest.js         cliente da API REST do Kafka (Aiven)
+    │   └── messaging.js         liga/desliga a mensageria pelo .env
     ├── ml/                      pythonRunner (ponte), artifacts, validation
     ├── middlewares/             apiKeyAuth, errorHandler
-    ├── modules/                 classification, models, health
+    ├── modules/                 classification (+ consumidor Kafka), models, health
     ├── scripts/                 runMl, registerModel
     ├── app.js
     └── server.js

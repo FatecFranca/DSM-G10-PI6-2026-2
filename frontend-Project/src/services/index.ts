@@ -1,8 +1,10 @@
-import { api } from './api';
+import { api, ApiError } from './api';
 import type {
+  AnalysisJob,
   AnalysisRecord,
   AnalysisResult,
   BatchAnalysisResponse,
+  BatchOutcome,
   Dashboard,
   FeatureContract,
   FollowUp,
@@ -97,6 +99,41 @@ export interface AnalysisFilters {
   to?: string;
 }
 
+const JOB_POLL_INTERVAL_MS = 2000;
+const JOB_POLL_TIMEOUT_MS = 5 * 60 * 1000;
+
+const isJob = (body: BatchAnalysisResponse | AnalysisJob): body is AnalysisJob =>
+  'status' in body && 'requested' in body;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitForJob(job: AnalysisJob): Promise<BatchOutcome> {
+  const deadline = Date.now() + JOB_POLL_TIMEOUT_MS;
+  let current = job;
+
+  while (current.status === 'QUEUED') {
+    if (Date.now() > deadline) {
+      throw new ApiError(
+        0,
+        'ANALYSIS_JOB_PENDING',
+        'O lote ainda está em processamento. Os resultados aparecerão no histórico ao concluir.',
+      );
+    }
+    await sleep(JOB_POLL_INTERVAL_MS);
+    current = await api.get<AnalysisJob>(`/analyses/jobs/${current.id}`);
+  }
+
+  if (current.status === 'FAILED') {
+    throw new ApiError(
+      502,
+      current.error?.code ?? 'ANALYSIS_JOB_FAILED',
+      current.error?.message ?? 'O lote de análise falhou.',
+    );
+  }
+
+  return { analyzed: current.analyzed, skipped: current.skipped };
+}
+
 export const analysesService = {
   list: (filters: AnalysisFilters = {}, signal?: AbortSignal) =>
     api.get<Paginated<AnalysisRecord>>('/analyses', { ...filters }, signal),
@@ -106,8 +143,14 @@ export const analysesService = {
   runForStudent: (studentId: string) =>
     api.post<AnalysisResult>(`/analyses/student/${studentId}`, {}),
 
-  runBatch: (studentIds: string[]) =>
-    api.post<BatchAnalysisResponse>('/analyses/batch', { studentIds }),
+  runBatch: async (studentIds: string[]): Promise<BatchOutcome> => {
+    const body = await api.post<BatchAnalysisResponse | AnalysisJob>('/analyses/batch', {
+      studentIds,
+    });
+    return isJob(body) ? waitForJob(body) : body;
+  },
+
+  getJob: (id: string) => api.get<AnalysisJob>(`/analyses/jobs/${id}`),
 
   simulate: (features: StudentFeatures) =>
     api.post<AnalysisResult>('/analyses/simulate', { features }),

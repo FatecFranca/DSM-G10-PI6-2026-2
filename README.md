@@ -186,6 +186,35 @@ painel, selecione os estudantes na lista e use **Analisar selecionados**.
 9. Web apresenta classificação, score e situação — com a ressalva de apoio à decisão
 ```
 
+## Mensageria — análise em lote via Kafka
+
+A intercomunicação entre os dois backends no lote de análise é feita por mensageria,
+com **Apache Kafka gerenciado no Aiven**, acessado pela **API REST do Kafka** (Karapace):
+HTTPS e Basic Auth, sem biblioteca nativa nem conexão TCP direta ao broker. Web e Mobile
+não falam com o Kafka — continuam falando só com o `backend-Project`.
+
+```text
+1. Web/Mobile  POST /api/analyses/batch                       (JWT do usuário)
+2. backend-Project cria o AnalysisJob (QUEUED) e responde 202 { id, status }
+3. backend-Project ──publica──► pae.analysis.requested  { jobId, records }   (só atributos)
+4. backend-MD      ──consome── pae.analysis.requested, classifica via Python
+5. backend-MD      ──publica──► pae.analysis.completed  { jobId, status, results }
+6. backend-Project ──consome── pae.analysis.completed, grava Analysis e fecha o job (DONE/FAILED)
+7. Web/Mobile acompanham GET /api/analyses/jobs/{id} até DONE ou FAILED
+```
+
+- **Entrega pelo menos uma vez:** o offset só é confirmado depois do processamento, e o
+  consumidor do `backend-Project` é idempotente (job já concluído é ignorado; estudante
+  com análise gravada no job não é gravado de novo).
+- **Liga/desliga por ambiente:** `KAFKA_ENABLED=false` (ou ausente) mantém o lote
+  síncrono por HTTP, como antes. As variáveis `KAFKA_*` estão nos `.env.example` dos dois
+  backends.
+- **Tópicos:** criados no console do Aiven (a API REST não cria tópicos):
+  `pae.analysis.requested` e `pae.analysis.completed`. Cada backend consome com um grupo
+  próprio (`backend-md`, `backend-project`).
+- Análise individual e simulação continuam síncronas por HTTP: o usuário espera o
+  resultado na tela, e uma fila ali só acrescentaria latência.
+
 ---
 
 ## O modelo
@@ -225,6 +254,8 @@ Detalhes de pipeline, reprodutibilidade e endpoints: [`backend-MD/README.md`](ba
 
 - Autenticação de usuário por JWT; senhas com hash bcrypt.
 - Autenticação entre serviços por API Key (`X-API-Key`), separada da credencial de usuário.
+- Mensageria: Kafka REST do Aiven só por HTTPS com Basic Auth; a mensagem de pedido leva
+  apenas atributos, sem nome nem identificação do estudante.
 - Autorização por papel (ADMIN / ANALYST / VIEWER) e escopo por instituição.
 - Segredos apenas em `.env`, nunca versionados. O `backend-MD` recusa requisições se a
   chave de serviço não estiver configurada, em vez de liberar acesso.

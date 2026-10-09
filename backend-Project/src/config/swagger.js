@@ -218,6 +218,29 @@ const definition = {
           },
         },
       },
+      AnalysisJob: {
+        type: 'object',
+        description: 'Lote de análise processado de forma assíncrona via Kafka.',
+        properties: {
+          id: { type: 'string' },
+          status: { type: 'string', enum: ['QUEUED', 'DONE', 'FAILED'] },
+          requested: { type: 'integer', description: 'Estudantes enviados ao serviço de IA' },
+          analyzed: { type: 'integer', description: 'Análises gravadas (0 enquanto QUEUED)' },
+          skipped: { type: 'array', items: { type: 'object' } },
+          error: {
+            type: 'object',
+            nullable: true,
+            properties: { code: { type: 'string' }, message: { type: 'string' } },
+          },
+          model: {
+            type: 'object',
+            nullable: true,
+            properties: { version: { type: 'string' }, algorithm: { type: 'string' } },
+          },
+          createdAt: { type: 'string', format: 'date-time' },
+          completedAt: { type: 'string', format: 'date-time', nullable: true },
+        },
+      },
       AnalysisResult: {
         type: 'object',
         properties: {

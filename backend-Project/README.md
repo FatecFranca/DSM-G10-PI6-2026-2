@@ -105,7 +105,7 @@ expirar.
 
 ```text
 cliente → backend-Project (valida, aplica regra de negócio)
-        → backend-MD (classifica / agrupa)
+        → backend-MD (classifica)
         → backend-Project (deriva prioridade, grava histórico)
         → cliente
 ```
@@ -135,6 +135,40 @@ A prioridade vem exclusivamente da classificação e da confiança do modelo. At
 um perfil de agrupamento (`KMeans`) podia elevá-la em um nível; a clusterização foi
 removida do projeto (ver seção 10 do `CONTEXT.md` do `backend-MD`).
 
+### Lote de análise via mensageria (Kafka REST, Aiven)
+
+Com `KAFKA_ENABLED=true`, `POST /api/analyses/batch` deixa de chamar o `backend-MD` por
+HTTP e passa a conversar com ele pelo Kafka:
+
+```text
+POST /analyses/batch → AnalysisJob QUEUED → 202 { id, status }
+                     → publica pae.analysis.requested { jobId, records }
+backend-MD classifica → publica pae.analysis.completed { jobId, status, model, results }
+consumidor deste serviço → grava Analysis (com jobId) + atualiza Student → job DONE/FAILED
+cliente → GET /analyses/jobs/{id} até DONE ou FAILED
+```
+
+| Arquivo | Papel |
+| --- | --- |
+| `src/lib/kafkaRest.js` | Cliente da API REST v2 do Kafka (produzir, consumir, confirmar offset). Idêntico ao do `backend-MD` |
+| `src/lib/messaging.js` | Liga/desliga pela configuração e instancia o cliente com as variáveis `KAFKA_*` |
+| `src/modules/analyses/analysisJobs.js` | Enfileira o lote, consulta o job e consome o resultado |
+
+- O pedido publicado leva **só os atributos**; a correlação com o estudante volta pelo
+  índice do registro, contra os `items` guardados no `AnalysisJob`.
+- Entrega **pelo menos uma vez**: o consumidor é idempotente (ignora job já concluído e
+  não regrava estudante que já tem análise daquele job).
+- Se o Kafka estiver fora na hora do pedido, o job vira `FAILED` e a resposta é
+  `503 MESSAGING_UNAVAILABLE` — nada fica "enfileirado" sem ter sido publicado.
+- Se o `backend-MD` estiver fora, o pedido fica retido no tópico e é processado quando
+  ele voltar; o job permanece `QUEUED` até lá.
+- `KAFKA_ENABLED=false` (ou ausente) mantém o comportamento síncrono anterior (`200` com
+  os resultados).
+
+Os tópicos `pae.analysis.requested` e `pae.analysis.completed` precisam existir no Aiven
+(a API REST não cria tópicos). Depois de mudar o `schema.prisma`, rode
+`npm run prisma:push` para criar a coleção `analysis_jobs` e os índices.
+
 ---
 
 ## Endpoints
@@ -154,7 +188,8 @@ removida do projeto (ver seção 10 do `CONTEXT.md` do `backend-MD`).
 | `GET` | `/api/analyses` | todos | Histórico de análises, com filtros |
 | `GET` | `/api/analyses/{id}` | todos | Detalhe + cópia dos atributos usados |
 | `POST` | `/api/analyses/student/{id}` | ADMIN, ANALYST | Analisa e grava histórico |
-| `POST` | `/api/analyses/batch` | ADMIN, ANALYST | Analisa até 200 estudantes |
+| `POST` | `/api/analyses/batch` | ADMIN, ANALYST | Analisa até 200 estudantes (`202` + job com mensageria ativa) |
+| `GET` | `/api/analyses/jobs/{id}` | quem pediu, ADMIN | Andamento do lote enfileirado |
 | `POST` | `/api/analyses/simulate` | ADMIN, ANALYST | Classifica sem persistir |
 | `GET` | `/api/follow-ups` | todos | Fila de acompanhamentos |
 | `POST` | `/api/follow-ups` | ADMIN, ANALYST | Abre acompanhamento |
@@ -182,6 +217,8 @@ Formato único: `{ "error": "<CODE>", "message": "...", "details": ... }`
 | `MODEL_NOT_TRAINED` | 503 | Serviço de IA sem modelo |
 | `ML_SERVICE_UNREACHABLE` | 503 | Serviço de IA fora |
 | `ML_SERVICE_TIMEOUT` | 504 | Serviço de IA demorou demais |
+| `MESSAGING_UNAVAILABLE` | 503 | Kafka indisponível — o lote não foi enfileirado |
+| `ANALYSIS_JOB_NOT_FOUND` | 404 | Job inexistente ou de outro usuário |
 
 ---
 
@@ -193,6 +230,7 @@ Formato único: `{ "error": "<CODE>", "message": "...", "details": ... }`
 | `institutions` | Entidades atendidas; delimitam escopo de acesso |
 | `students` | Cadastro + atributos acadêmicos/socioeconômicos + resumo da última análise |
 | `analyses` | Histórico imutável: qual estudante, quando, qual resultado, qual versão do modelo |
+| `analysis_jobs` | Lotes enviados pela mensageria: situação (`QUEUED`/`DONE`/`FAILED`), itens e contagens |
 | `follow_ups` | Ações tomadas a partir das análises |
 
 Decisões que valem registrar:
@@ -219,7 +257,10 @@ backend-Project/
 ├── prisma/schema.prisma
 └── src/
     ├── config/                  env, swagger
-    ├── lib/prisma.js            único acesso ao MongoDB
+    ├── lib/
+    │   ├── prisma.js            único acesso ao MongoDB
+    │   ├── kafkaRest.js         cliente da API REST do Kafka (Aiven)
+    │   └── messaging.js         liga/desliga a mensageria pelo .env
     ├── middlewares/             auth (JWT + papéis + escopo), errorHandler
     ├── services/
     │   ├── mdClient.js          único lugar que conhece o backend-MD
@@ -230,6 +271,7 @@ backend-Project/
     │   ├── institutions/        administração de instituições
     │   ├── students/            cadastro e consulta
     │   ├── analyses/            orquestração com o serviço de IA + priority.js
+    │   │                        + analysisJobs.js (lote via Kafka)
     │   ├── followups/           acompanhamento
     │   ├── dashboard/           indicadores e séries
     │   ├── datamining/          repasse dos resultados analíticos
