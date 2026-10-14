@@ -118,6 +118,7 @@ As quatro etapas são desacopladas e podem ser executadas isoladamente.
 | 3. Treinamento | `ML/train_model.py` | `npm run ml:train` | dataset tratado → `artifacts/model.pkl`, `artifacts/scaler.pkl`, `artifacts/model_metadata.json` |
 | 4. Inferência | `ML/predict.py` | acionado pela API | JSON (stdin) → JSON (stdout) |
 | Exploração | `ML/explore.py` | `npm run ml:explore` | dataset tratado → `reports/figures/*.png` (dev-only) |
+| Documento do processo | `ML/Classificacao_Evasao_Estudantes.ipynb` | Jupyter (dev-only) | CSV bruto → as 9 etapas do processo de Mineração de Dados, usando as funções do próprio pipeline e conferindo o resultado contra os artefatos e o `predict.py`; não grava em `artifacts/` |
 
 ### Dataset
 
@@ -257,6 +258,7 @@ backend-MD/
 │   ├── train_model.py           etapa 3
 │   ├── predict.py               etapa 4 — stdin/stdout
 │   ├── explore.py               exploração visual (dev-only)
+│   ├── Classificacao_Evasao_Estudantes.ipynb   processo de mineração documentado (dev-only)
 │   ├── environment.yml          ambiente conda (Python 3.9)
 │   ├── requirements.txt         ambiente mínimo de execução
 │   ├── artifacts/               modelo, scaler e metadados (gerados)
