@@ -21,13 +21,13 @@ guarda dado de negócio — quem faz isso é o `backend-Project`, o único consu
 | --- | --- |
 | API | Node.js + Express 5.2.1 |
 | ML / Mineração de Dados | Python 3.9 + scikit-learn 1.6.1, pandas 2.3.3, numpy 2.0.2, joblib 1.5.2 |
-| Banco | MongoDB via Prisma 6.19.3 (database `Mongo-PI-Backend-MD`) |
+| Banco | MongoDB via Prisma 6.19.3 (database `Mongo-PI-Backend-MD`, metadados técnicos dos modelos) |
 | Documentação | swagger-jsdoc + swagger-ui-express |
 
-**Ponte Express → Python:** processo Python acionado via `child_process` sob demanda
-(decisão registrada na seção 6 do `CONTEXT.md`). O JSON entra pelo stdin do script e sai
-pelo stdout. Consequência: o custo de subida do interpretador (~1-2s) é pago por
-requisição — por isso existe o endpoint em lote, preferível a N chamadas unitárias.
+**Ponte Express → Python:** a cada requisição de classificação, a API inicia o script
+Python via `child_process`. O JSON entra pelo stdin do script e sai pelo stdout. A subida do
+interpretador leva ~1-2s por requisição; para vários estudantes, use o endpoint em lote
+(`POST /api/classify/batch`).
 
 ---
 
@@ -98,18 +98,9 @@ npm start                 # produção
 
 ## Pipeline de ML
 
-### Tarefa de aprendizado: somente Classificação
-
-`docs/dataset/BASE-ML.md` exige **mínimo uma e no máximo duas** tarefas entre Classificação,
-Regressão, Regra de associação, Clustering e Recomendação. Este projeto aplica **uma:
-classificação supervisionada** em 3 classes.
-
-Existiu aqui um agrupamento por `KMeans`, removido em 03/09/2026. A base é rotulada e o
-problema é de classificação; o agrupamento também não se sustentava empiricamente
-(silhueta 0,214, com 74,6% dos registros num único grupo). O histórico completo da decisão
-está na seção 10 do `CONTEXT.md`.
-
-As quatro etapas são desacopladas e podem ser executadas isoladamente.
+A tarefa de aprendizado é **classificação supervisionada** em 3 classes (`Dropout`,
+`Enrolled`, `Graduate`). O pipeline tem quatro etapas desacopladas, que podem ser
+executadas isoladamente.
 
 | Etapa | Script | Comando | Entrada → Saída |
 | --- | --- | --- | --- |
@@ -138,31 +129,22 @@ Distribuição das classes (desbalanceada, razão 2,78x):
 O dataset é dividido em **desenvolvimento (80%) e teste (20%)**. Treze algoritmos
 candidatos — incluindo variantes com `class_weight="balanced"` — são comparados por
 validação cruzada de 10 folds **apenas sobre o desenvolvimento**. O conjunto de teste não
-participa da escolha: ele é usado uma única vez, no fim, para a estimativa honesta.
+participa da escolha: ele é usado uma única vez, no fim, para a avaliação final.
 
 O critério é fixado antes de olhar os resultados e tem quatro etapas
 (`select_final` em `ML/train_model.py`):
 
 1. **Filtro de estabilidade:** seguem na disputa só os candidatos cuja distância entre
-   acurácia de treino e de validação fica em até `MAX_OVERFIT_GAP` (0,05). É uma
-   **preferência deliberada por parcimônia e estabilidade**, não a afirmação de que os
-   excluídos generalizariam pior: num ensemble essa distância é estrutural (uma floresta
-   com folhas pequenas ajusta quase todo o treino por construção). Por isso o custo do
-   corte é medido e publicado na etapa 4.
-2. **Score de seleção:** `0,50 × F1 macro + 0,50 × revocação de Dropout`. O F1 macro cuida
-   do equilíbrio entre as três classes desbalanceadas; a revocação de `Dropout` entra com
-   peso igual porque, num sistema de apoio à identificação de estudantes em risco, deixar
-   de sinalizar quem evade é o erro caro.
-3. **Desempate por parcimônia:** candidatos a até `EQUIVALENCE_TOLERANCE` (0,01) do melhor
-   score são tratados como equivalentes e, entre eles, vence o de **menor distância
-   treino-validação** — o mais estável, não o de maior score bruto.
-4. **Custo da escolha:** frente ao melhor candidato removido pelo filtro, registra-se quanto
-   se abriu mão em F1 macro e quanto se ganhou ou perdeu em revocação de `Dropout`
+   acurácia de treino e de validação fica em até `MAX_OVERFIT_GAP` (0,05).
+2. **Score de seleção:** `0,50 × F1 macro + 0,50 × revocação de Dropout`. O F1 macro mede
+   o equilíbrio entre as três classes; a revocação de `Dropout` mede a fração dos evasores
+   que o modelo encontra.
+3. **Desempate:** candidatos a até `EQUIVALENCE_TOLERANCE` (0,01) do melhor score são
+   tratados como equivalentes e, entre eles, vence o de **menor distância
+   treino-validação**.
+4. **Custo da escolha:** frente ao melhor candidato removido pelo filtro, registra-se a
+   diferença em F1 macro e em revocação de `Dropout`
    (`selection_criteria.cost_vs_best_excluded`).
-
-Por que medir na validação cruzada e não no teste: selecionar pelo teste transforma o teste
-em validação e infla as métricas publicadas. Medido no projeto, o otimismo era de ~0,016 de
-F1 macro — e a escolha mudava.
 
 #### Resultado do treino atual
 
@@ -185,23 +167,16 @@ o conjunto de desenvolvimento, ordenadas pelo score:
 | GaussianNB | 0,6719 | 0,5705 | 0,6905 | 0,6305 | 0,0066 | |
 | KNeighborsClassifier | 0,7109 | 0,5987 | 0,6483 | 0,6235 | 0,0343 | |
 
-- **Por que `LogisticRegression`:** tem o melhor score entre os elegíveis (0,7205). O único
+- **Escolhido:** `LogisticRegression`, melhor score entre os elegíveis (0,7205). O único
   equivalente, `LogisticRegressionBalanced` (0,7124), tem distância treino-validação maior.
 - **Custo frente ao melhor excluído (`RandomForestBalanced`):** −0,0331 de F1 macro e
-  **+0,0052 de revocação de `Dropout`**. O modelo escolhido encontra mais evasores que a
-  floresta; toda a vantagem dela está no F1 macro, concentrada nas classes que não são
-  `Dropout`, sobretudo `Enrolled`. Esse é o argumento para defender a escolha, não a ideia
-  de que a floresta "memoriza".
+  +0,0052 de revocação de `Dropout`.
 - **No teste (usado uma única vez):** acurácia 0,7684, acurácia balanceada 0,6754, F1 macro
   0,6826, revocação de `Dropout` 0,7676.
 
-Esta tabela é um retrato do treino de 08/09/2026: a seleção é dinâmica, e um retreino pode
-eleger outro algoritmo. A fonte de verdade é o `model_metadata.json` (`candidates`,
-`selection_criteria` e o texto completo em `selection_rationale`), exposto em
-`GET /api/models/active`. Ao retreinar, atualize esta seção.
-
-A comparação dos candidatos não aparece nas telas da Web nem do Mobile. Ela é informação
-técnica de quem desenvolve e defende o modelo, e por isso fica documentada aqui.
+Esta tabela reflete o treino de 08/09/2026; um retreino pode eleger outro algoritmo. A
+fonte de verdade é o `model_metadata.json` (`candidates`, `selection_criteria` e
+`selection_rationale`), exposto em `GET /api/models/active`.
 
 ### Reprodutibilidade
 
@@ -258,8 +233,7 @@ curl -X POST http://localhost:3003/api/classify \
 
 Além da API HTTP, o serviço atende o **lote de análise** pelo Kafka quando
 `KAFKA_ENABLED=true`. O consumidor roda dentro do mesmo processo Node e usa o mesmo
-`classifyBatch` (e o mesmo `pythonRunner.js`) do `POST /api/classify/batch` — não há
-serviço Python separado.
+`classifyBatch` (e o mesmo `pythonRunner.js`) do `POST /api/classify/batch`.
 
 ```text
 consome pae.analysis.requested  { jobId, records: [atributos...] }
@@ -320,12 +294,3 @@ backend-MD/
     ├── app.js
     └── server.js
 ```
-
-## O que NÃO pertence a este serviço
-
-Telas, autenticação de usuário, cadastro de usuários/estudantes, navegação, regra de
-negócio e o histórico de análises por estudante (quem foi analisado, quando, com qual
-resultado) — tudo isso é do `backend-Project`.
-
-Aqui só existe **metadado técnico de reprodutibilidade do modelo**. As duas coisas não
-devem ser fundidas nem duplicadas entre os projetos.

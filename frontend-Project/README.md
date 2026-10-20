@@ -12,9 +12,8 @@ inteligência analítica pertence ao `backend-MD`.
 
 React 19.2.8 · Vite 8.2.1 · TypeScript 7.0.2 · react-router-dom 7.18.2
 
-Sem biblioteca de UI e sem biblioteca de gráficos: os componentes visuais e os gráficos
-(rosca, barras, série temporal) são próprios, em CSS e SVG. Menos dependência para manter
-em um projeto acadêmico, e a stack fixada na seção 4 do `CONTEXT.md` é respeitada.
+Os componentes visuais e os gráficos (rosca, barras, série temporal) são próprios, em CSS
+e SVG — veja `components/ui.tsx` e `components/charts.tsx`.
 
 ---
 
@@ -45,16 +44,11 @@ npm run test:e2e          # modo headless, assume que o dev server já está no 
 npm run test:stress       # geração em massa de dados aleatórios (opt-in, ver abaixo)
 ```
 
-`npm run test` usa `scripts/run-e2e.mjs` para subir o `vite dev` sozinho, esperar
-`http://localhost:5173` responder (via `wait-on`) e depois derrubar o servidor pelo PID que
-ele mesmo abriu (via `tree-kill`) ao final — só isso é automático. Optamos por esse script
-próprio em vez do pacote `start-server-and-test` porque ele depende de `ps-tree`, que no
-Windows usa `wmic.exe` para descobrir o processo do servidor — e o `wmic` foi removido das
-versões recentes do Windows 11, quebrando a limpeza ao final do teste (o teste em si passa,
-só a etapa de encerrar o servidor falha). O `backend-Project` (com `npm run seed`
-executado) e o `backend-MD` **precisam já estar no
-ar** antes de rodar qualquer um destes comandos; os testes batem na aplicação real, nunca
-em mocks.
+`npm run test` usa `scripts/run-e2e.mjs` para subir o `vite dev`, esperar
+`http://localhost:5173` responder (via `wait-on`) e derrubar o servidor ao final (via
+`tree-kill`) — só o servidor do Front-End é automático. O `backend-Project` (com
+`npm run seed` executado) e o `backend-MD` **precisam já estar no ar** antes de rodar
+qualquer um destes comandos, porque os testes usam a aplicação real.
 
 - `cypress/e2e/login.cy.ts` — credenciais inválidas, login válido, mostrar/ocultar senha,
   alternância de tema.
@@ -82,9 +76,7 @@ existe uma instituição antes de testar o cadastro de estudante) quanto pelo
 
 ### Geração de massa de dados (stress test)
 
-`stress.cy.ts` não roda dentro de `npm run test` — ele criaria dezenas de registros a cada
-execução normal, o que não é o que se quer na validação do dia a dia. Para gerar volume de
-propósito:
+`stress.cy.ts` não roda dentro de `npm run test`. Para gerar volume de propósito:
 
 ```bash
 npm run test:stress                                   # ~20 estudantes (padrão)
@@ -105,17 +97,13 @@ performance, paginação ou os gráficos do painel com volume de verdade.
 VITE_API_BASE_URL=http://localhost:3004/api
 ```
 
-**Existe apenas uma URL de API**, apontando para o `backend-Project`. Não há — e não deve
-haver — variável apontando para o `backend-MD`: resultados de IA chegam pelo
-`backend-Project`, que é o gateway único. Se uma configuração desse tipo aparecer no
-código, a regra da seção 6 do `CONTEXT.md` está sendo violada.
+É a única variável: a URL do `backend-Project`, por onde chegam todos os dados, inclusive
+os resultados de IA.
 
-O prefixo `VITE_` é obrigatório: o Vite só expõe ao navegador variáveis com esse prefixo.
-Sem ele, `import.meta.env` não vê o valor — é bug, não questão de nomenclatura. As
-variáveis esperadas estão declaradas em `src/vite-env.d.ts`, então ler uma inexistente é
-erro de compilação.
+O Vite só expõe ao navegador variáveis com o prefixo `VITE_`. As variáveis esperadas estão
+declaradas em `src/vite-env.d.ts`.
 
-Tudo que chega ao navegador é público. **Nenhum segredo aqui.**
+Tudo que chega ao navegador é público: não coloque segredos no `.env` do Front-End.
 
 ---
 
@@ -133,32 +121,29 @@ Tudo que chega ao navegador é público. **Nenhum segredo aqui.**
 | `/follow-ups` | Fila de acompanhamentos | todos (escrita: ADMIN, ANALYST) |
 | `/admin/users`, `/admin/institutions` | Administração | ADMIN |
 
-O menu e as ações se ajustam ao papel do usuário. Isso é **experiência de uso**: a
-autorização real está no Back-End, que recusaria a requisição de todo jeito.
+O menu e as ações se ajustam ao papel do usuário; a autorização em si é feita pelo
+Back-End.
 
 ---
 
-## Como os dados de IA são apresentados
+## Como um resultado de IA aparece
 
-A seção 9 do `CONTEXT.md` define que o resultado não pode parecer certeza. Na prática:
+Cada resultado (`AnalysisResultView`) mostra:
 
-- classificação, confiança/score e situação aparecem juntos, e o texto da situação vem da
-  leitura de acompanhamento calculada no Back-End — a interface não recalcula prioridade;
-- a confiança é mostrada como **score com barra**, não como "probabilidade de evasão";
-- a cor acompanha a classe prevista, não o valor: confiança alta em `Dropout` não é "bom",
-  é sinal forte de risco;
-- as probabilidades das três classes ficam visíveis, para que um resultado de 54% não
-  pareça igual a um de 99%;
-- o componente `Disclaimer` acompanha todo resultado de IA;
-- valores fora da faixa observada no treino são destacados no formulário e listados em
-  `warnings` — o modelo extrapolou, e a confiança ali é menos confiável.
+- a classificação, a confiança como **score com barra** e a situação de acompanhamento
+  (texto calculado pelo Back-End);
+- as probabilidades das três classes;
+- a cor da classe prevista;
+- o aviso de apoio à decisão (`Disclaimer`);
+- os atributos fora da faixa observada no treino, destacados no formulário e listados em
+  `warnings`.
 
-## O formulário de atributos não conhece as 36 colunas
+## Formulário de atributos
 
 `FeaturesForm` é **gerado** a partir de `GET /api/students/feature-contract`, que repassa o
 contrato do `backend-MD`: nome, rótulo legível, tipo e faixa observada no treino. Se o
-modelo for retreinado com outro conjunto de atributos, a tela acompanha sozinha — e não há
-uma segunda lista de colunas para manter em sincronia.
+modelo for retreinado com outro conjunto de atributos, o formulário acompanha sem mudança
+no código.
 
 ---
 
@@ -186,8 +171,8 @@ frontend-Project/src/
 └── css/global.css             tokens, componentes e responsividade
 ```
 
-**Nenhum componente chama `fetch` diretamente.** Toda rede passa por `services/` — é o que
-mantém verificável a regra de não espalhar URLs e não duplicar chamadas HTTP.
+Toda chamada HTTP passa por `services/`: `api.ts` cuida do token, dos erros e da URL, e
+`index.ts` tem um serviço por área funcional.
 
 `useAsync` cancela a requisição anterior ao trocar filtros, evitando que uma resposta
 atrasada sobrescreva a tela com dado obsoleto.
@@ -204,9 +189,3 @@ pt-BR e avisa no console em desenvolvimento — nunca renderiza vazio.
 
 Desktop, notebook, tablet e telas menores. Até 1024px a barra lateral vira gaveta;
 tabelas largas rolam horizontalmente dentro do próprio container, sem estourar a página.
-
-## O que NÃO fazer aqui
-
-Conectar ao MongoDB, executar classificação no navegador, duplicar regra de negócio do
-Back-End, guardar segredo, chamar o `backend-MD` diretamente (em nenhuma hipótese), ou
-tratar a estrutura do banco como contrato da interface.
