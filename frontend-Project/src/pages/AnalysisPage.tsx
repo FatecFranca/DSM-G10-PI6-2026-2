@@ -40,7 +40,9 @@ export function AnalysisPage() {
   const [tab, setTab] = useState<TabId>(can.runAnalyses ? 'simulate' : 'history');
 
   const tabs = [
-    ...(can.runAnalyses ? [{ id: 'simulate' as TabId, label: t('analysis.simulate') }] : []),
+    ...(can.runAnalyses
+      ? [{ id: 'simulate' as TabId, label: t('analysis.simulate'), info: t('analysis.simulateHint') }]
+      : []),
     { id: 'history' as TabId, label: t('analysis.history') },
   ];
 
@@ -104,8 +106,6 @@ function SimulateTab() {
 
   return (
     <div className="stack">
-      <Alert tone="info">{t('analysis.simulateHint')}</Alert>
-
       {generalError && <Alert tone="danger">{generalError}</Alert>}
 
       {result ? (

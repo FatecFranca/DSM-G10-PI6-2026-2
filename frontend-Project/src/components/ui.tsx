@@ -1,4 +1,4 @@
-import { useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 
 import { useI18n, type FeatureInfo } from '../state/I18nContext';
 import { useTheme } from '../state/ThemeContext';
@@ -10,22 +10,63 @@ interface CardProps {
   actions?: ReactNode;
   children: ReactNode;
   flush?: boolean;
+  collapsible?: boolean;
 }
 
-export function Card({ title, hint, actions, children, flush }: CardProps) {
+export function Card({ title, hint, actions, children, flush, collapsible }: CardProps) {
+  const heading = (
+    <div>
+      {title && <h2 className="card__title">{title}</h2>}
+      {hint && <p className="card__hint">{hint}</p>}
+    </div>
+  );
+  const body = (
+    <div className={flush ? 'card__body card__body--flush' : 'card__body'}>{children}</div>
+  );
+
+  if (collapsible) {
+    return (
+      <details className="card card--collapsible">
+        <summary className="card__header">
+          {heading}
+          {actions && <div className="row">{actions}</div>}
+          <span className="card__chevron" aria-hidden="true">
+            <ChevronIcon />
+          </span>
+        </summary>
+        {body}
+      </details>
+    );
+  }
+
   return (
     <section className="card">
       {(title || actions) && (
         <header className="card__header">
-          <div>
-            {title && <h2 className="card__title">{title}</h2>}
-            {hint && <p className="card__hint">{hint}</p>}
-          </div>
+          {heading}
           {actions && <div className="row">{actions}</div>}
         </header>
       )}
-      <div className={flush ? 'card__body card__body--flush' : 'card__body'}>{children}</div>
+      {body}
     </section>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
   );
 }
 
@@ -33,14 +74,18 @@ interface StatProps {
   label: string;
   value: ReactNode;
   meta?: ReactNode;
+  info?: string;
   tone?: 'default' | 'accent' | 'danger' | 'warning' | 'success';
 }
 
-export function Stat({ label, value, meta, tone = 'default' }: StatProps) {
+export function Stat({ label, value, meta, info, tone = 'default' }: StatProps) {
   const toneClass = tone === 'default' ? '' : ` stat--${tone}`;
   return (
     <div className={`stat${toneClass}`}>
-      <div className="stat__label">{label}</div>
+      <div className="stat__label">
+        {label}
+        {info && <InfoTooltip content={info} placement="bottom" />}
+      </div>
       <div className="stat__value">{value}</div>
       {meta && <div className="stat__meta">{meta}</div>}
     </div>
@@ -159,12 +204,22 @@ function flattenFeatureInfo(content: FeatureInfo): string {
   return parts.join('. ');
 }
 
-export function InfoTooltip({ content }: { content: FeatureInfo | string }) {
+export function InfoTooltip({
+  content,
+  placement = 'top',
+  nestedId,
+}: {
+  content: FeatureInfo | string;
+  placement?: 'top' | 'bottom';
+  nestedId?: string;
+}) {
   const { t } = useI18n();
   const info: FeatureInfo = typeof content === 'string' ? { text: content } : content;
   const label = typeof content === 'string' ? content : flattenFeatureInfo(content);
   const optionCount = info.options?.length ?? 0;
-  const sizeClass = optionCount > 16 ? ' info-tooltip__bubble--xwide' : optionCount > 6 ? ' info-tooltip__bubble--wide' : '';
+  const sizeClass =
+    (optionCount > 16 ? ' info-tooltip__bubble--xwide' : optionCount > 6 ? ' info-tooltip__bubble--wide' : '') +
+    (placement === 'bottom' ? ' info-tooltip__bubble--below' : '');
 
   const triggerRef = useRef<HTMLSpanElement>(null);
   const bubbleRef = useRef<HTMLSpanElement>(null);
@@ -193,20 +248,28 @@ export function InfoTooltip({ content }: { content: FeatureInfo | string }) {
     bubble.style.setProperty('--tt-shift', `${shift}px`);
   }
 
+  useEffect(() => {
+    if (!nestedId) return;
+    const host = triggerRef.current?.closest('button');
+    host?.addEventListener('focus', reposition);
+    return () => host?.removeEventListener('focus', reposition);
+  }, [nestedId]);
+
+  const triggerProps = nestedId
+    ? { 'aria-hidden': true }
+    : { tabIndex: 0, role: 'button', 'aria-label': label, onFocus: reposition };
+
   return (
-    <span
-      className="info-tooltip"
-      tabIndex={0}
-      role="button"
-      aria-label={label}
-      ref={triggerRef}
-      onMouseEnter={reposition}
-      onFocus={reposition}
-    >
+    <span className="info-tooltip" ref={triggerRef} onMouseEnter={reposition} {...triggerProps}>
       <span className="info-tooltip__icon" aria-hidden="true">
         <InfoIcon />
       </span>
-      <span className={`info-tooltip__bubble${sizeClass}`} role="tooltip" ref={bubbleRef}>
+      <span
+        className={`info-tooltip__bubble${sizeClass}`}
+        role="tooltip"
+        id={nestedId}
+        ref={bubbleRef}
+      >
         <span className="info-tooltip__text">{info.text}</span>
         {optionCount > 0 && (
           <span className="info-tooltip__options">
@@ -530,23 +593,30 @@ export function Tabs<T extends string>({
   active,
   onChange,
 }: {
-  tabs: { id: T; label: string }[];
+  tabs: { id: T; label: string; info?: string }[];
   active: T;
   onChange: (id: T) => void;
 }) {
+  const baseId = useId();
+
   return (
     <div className="tabs" role="tablist">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          role="tab"
-          aria-selected={tab.id === active}
-          className={`tabs__tab${tab.id === active ? ' tabs__tab--active' : ''}`}
-          onClick={() => onChange(tab.id)}
-        >
-          {tab.label}
-        </button>
-      ))}
+      {tabs.map((tab) => {
+        const infoId = tab.info ? `${baseId}-${tab.id}-info` : undefined;
+        return (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={tab.id === active}
+            aria-describedby={infoId}
+            className={`tabs__tab${tab.id === active ? ' tabs__tab--active' : ''}`}
+            onClick={() => onChange(tab.id)}
+          >
+            {tab.label}
+            {tab.info && <InfoTooltip content={tab.info} nestedId={infoId} />}
+          </button>
+        );
+      })}
     </div>
   );
 }

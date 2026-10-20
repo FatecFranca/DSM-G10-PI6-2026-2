@@ -8,9 +8,9 @@ import {
   Card,
   CLASSIFICATION_COLOR,
   ClassificationBadge,
-  Disclaimer,
   EmptyState,
   ErrorState,
+  InfoTooltip,
   Loading,
   PRIORITY_COLOR,
   PriorityBadge,
@@ -155,24 +155,30 @@ export function DashboardPage() {
               )}
             </Card>
 
-            <Card title={t('dashboard.priorityDistribution')}>
+            <Card
+              title={
+                <>
+                  {t('dashboard.priorityDistribution')}
+                  <InfoTooltip
+                    content={`${t('analysis.supportTool')} ${t('analysis.calibrationNote')}`}
+                  />
+                </>
+              }
+            >
               {priorityDistribution.total === 0 ? (
                 <EmptyState title={t('dashboard.recentAnalysesEmpty')} />
               ) : (
-                <div className="stack">
-                  <BarList
-                    items={prioritySlices.map((slice) => ({
-                      label: slice.label,
-                      value: slice.value,
-                      color: slice.color,
-                      display: `${formatNumber(slice.value)} · ${formatPercent(
-                        priorityDistribution.total > 0 ? slice.value / priorityDistribution.total : 0,
-                        0,
-                      )}`,
-                    }))}
-                  />
-                  <Disclaimer />
-                </div>
+                <BarList
+                  items={prioritySlices.map((slice) => ({
+                    label: slice.label,
+                    value: slice.value,
+                    color: slice.color,
+                    display: `${formatNumber(slice.value)} · ${formatPercent(
+                      priorityDistribution.total > 0 ? slice.value / priorityDistribution.total : 0,
+                      0,
+                    )}`,
+                  }))}
+                />
               )}
             </Card>
           </div>
@@ -297,25 +303,6 @@ export function DashboardPage() {
               )}
             </Card>
           </div>
-
-          {dashboard.data.lastModelUsed && (
-            <Card title={t('dashboard.modelInUse')}>
-              <div className="row row--between">
-                <div>
-                  <strong>{dashboard.data.lastModelUsed.algorithm}</strong>{' '}
-                  <span className="mono text-muted">{dashboard.data.lastModelUsed.version}</span>
-                  <div className="text-sm text-muted">
-                    {t('analysis.date')}: {formatDate(dashboard.data.lastModelUsed.at, true)}
-                  </div>
-                </div>
-                <Link className="btn btn--secondary btn--sm" to="/data-mining">
-                  {t('dataMining.modelProcess')} →
-                </Link>
-              </div>
-            </Card>
-          )}
-
-          <Disclaimer>{dashboard.data.disclaimer}</Disclaimer>
         </>
       )}
     </div>

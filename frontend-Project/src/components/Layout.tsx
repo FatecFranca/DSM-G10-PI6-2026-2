@@ -3,7 +3,8 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../state/AuthContext';
 import { LOCALES, useI18n, type LocaleCode } from '../state/I18nContext';
-import { Button, ThemeToggle } from './ui';
+import { PaeLogo } from './PaeLogo';
+import { Button, InfoTooltip, ThemeToggle } from './ui';
 
 interface NavItem {
   to: string;
@@ -46,9 +47,7 @@ export function AppLayout() {
 
       <aside className={`sidebar${drawerOpen ? ' sidebar--open' : ''}`}>
         <div className="sidebar__brand">
-          <span className="sidebar__logo" aria-hidden="true">
-            {t('app.short')}
-          </span>
+          <PaeLogo className="sidebar__logo" height={26} />
           <div className="sidebar__brand-text">
             <div className="sidebar__title">{t('app.title')}</div>
             <div className="sidebar__subtitle">{t('app.subtitle')}</div>
@@ -163,17 +162,22 @@ function initials(name: string | undefined): string {
 
 export function PageHeader({
   title,
+  titleInfo,
   subtitle,
   actions,
 }: {
   title: string;
+  titleInfo?: string;
   subtitle?: string;
   actions?: ReactNode;
 }) {
   return (
     <div className="page-header">
       <div>
-        <h1 className="page-header__title">{title}</h1>
+        <h1 className="page-header__title">
+          {title}
+          {titleInfo && <InfoTooltip content={titleInfo} placement="bottom" />}
+        </h1>
         {subtitle && <p className="page-header__subtitle">{subtitle}</p>}
       </div>
       {actions && <div className="page-header__actions">{actions}</div>}

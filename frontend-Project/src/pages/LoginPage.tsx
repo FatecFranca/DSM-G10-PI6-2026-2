@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
+import { PaeLogo } from '../components/PaeLogo';
 import { Alert, Button, Field, PasswordInput, TextInput, ThemeToggle } from '../components/ui';
 import { useApiError } from '../hooks/useApiError';
 import { useAuth } from '../state/AuthContext';
@@ -47,7 +48,7 @@ export function LoginPage() {
     <div className="auth">
       <div className="auth__brand" aria-hidden="true">
         <div className="auth__brand-inner">
-          <div className="auth__brand-logo">{t('app.short')}</div>
+          <PaeLogo className="auth__brand-logo" height={44} />
           <h1 className="auth__brand-title">{t('app.title')}</h1>
           <p className="auth__brand-subtitle">{t('app.subtitle')}</p>
 
@@ -86,9 +87,7 @@ export function LoginPage() {
         <div className="auth__panel-body">
           <div className="auth__form">
             <div className="auth__mobile-brand">
-              <span className="sidebar__logo" aria-hidden="true">
-                {t('app.short')}
-              </span>
+              <PaeLogo className="auth__mobile-logo" height={24} />
               <div>
                 <div style={{ fontWeight: 650, fontSize: 14 }}>{t('app.title')}</div>
                 <div className="text-sm text-muted">{t('app.subtitle')}</div>

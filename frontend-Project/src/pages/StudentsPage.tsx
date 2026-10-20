@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AnalysisRow } from '../components/AnalysisResultView';
 import { PageHeader } from '../components/Layout';
 import {
-  Alert,
   Button,
   Card,
   EmptyState,
@@ -104,6 +103,7 @@ export function StudentsPage() {
     <div className="stack">
       <PageHeader
         title={t('students.title')}
+        titleInfo={can.runAnalyses ? t('analysis.supportTool') : undefined}
         subtitle={t('students.subtitle')}
         actions={
           <>
@@ -294,10 +294,6 @@ export function StudentsPage() {
           </>
         )}
       </Card>
-
-      {can.runAnalyses && rows.length > 0 && (
-        <Alert tone="info">{t('analysis.supportTool')}</Alert>
-      )}
     </div>
   );
 }

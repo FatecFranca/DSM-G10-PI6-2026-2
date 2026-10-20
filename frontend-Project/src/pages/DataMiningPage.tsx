@@ -4,7 +4,6 @@ import {
   Alert,
   Card,
   DefinitionList,
-  Disclaimer,
   EmptyState,
   Loading,
   Stat,
@@ -56,35 +55,46 @@ function ModelProcess() {
 
   return (
     <div className="stack">
-      <Alert tone="info">{t('dataMining.modelProcessHint')}</Alert>
-
       <div className="grid grid--stats">
-        <Stat label={t('analysis.algorithm')} value={info.algorithm} tone="accent" />
+        <Stat
+          label={t('analysis.algorithm')}
+          value={info.algorithm}
+          info={t('dataMining.algorithmInfo')}
+          tone="accent"
+        />
         <Stat
           label={t('dataMining.testAccuracy')}
           value={formatPercent(evaluation.test_accuracy, 1)}
+          info={t('dataMining.testAccuracyInfo')}
         />
         <Stat
           label={t('dataMining.balancedAccuracy')}
           value={formatPercent(evaluation.test_balanced_accuracy, 1)}
           meta={t('dataMining.balancedAccuracyHint')}
+          info={t('dataMining.balancedAccuracyInfo')}
         />
-        <Stat label={t('dataMining.testF1')} value={formatNumber(evaluation.test_f1_macro, { maximumFractionDigits: 4 })} />
+        <Stat
+          label={t('dataMining.testF1')}
+          value={formatNumber(evaluation.test_f1_macro, { maximumFractionDigits: 4 })}
+          info={t('dataMining.testF1Info')}
+        />
         <Stat
           label={t('dataMining.recallDropout')}
           value={formatPercent(evaluation.test_recall_dropout, 1)}
           meta={t('dataMining.recallDropoutHint')}
+          info={t('dataMining.recallDropoutInfo')}
           tone="accent"
         />
         <Stat
           label={t('dataMining.testGap')}
           value={formatNumber(evaluation.generalization_gap, { maximumFractionDigits: 4 })}
           meta={`${t('dataMining.devAccuracy')}: ${formatPercent(evaluation.dev_accuracy, 1)}`}
+          info={t('dataMining.testGapInfo')}
           tone={evaluation.generalization_gap > 0.1 ? 'warning' : 'success'}
         />
       </div>
 
-      <Card title={t('dataMining.stepData')}>
+      <Card title={t('dataMining.stepData')} collapsible>
         <DefinitionList
           items={[
             {
@@ -122,7 +132,7 @@ function ModelProcess() {
         />
       </Card>
 
-      <Card title={t('dataMining.stepPreparation')}>
+      <Card title={t('dataMining.stepPreparation')} collapsible>
         <div className="definition-list">
           {Object.entries(process.preparation as Record<string, unknown>).map(([key, value]) => (
             <div key={key}>
@@ -144,6 +154,7 @@ function ModelProcess() {
             ? `${t('dataMining.importanceMethod')}: ${process.featureSelection.importanceMethod}`
             : undefined
         }
+        collapsible
       >
         {process.featureSelection.importance && process.featureSelection.importance.length > 0 ? (
           <div className="stack">
@@ -163,73 +174,12 @@ function ModelProcess() {
         )}
       </Card>
 
-      <Card
-        title={t('dataMining.stepSelection')}
-        hint={
-          <span className="card__hint--stretch-last">{process.modelSelection.rationale}</span>
-        }
-        flush
-      >
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>{t('dataMining.candidateAlgorithm')}</th>
-                <th className="table__num">{t('dataMining.cvAccuracy')}</th>
-                <th className="table__num">{t('dataMining.cvF1')}</th>
-                <th className="table__num">{t('dataMining.recallDropout')}</th>
-                <th className="table__num">{t('dataMining.selectionScore')}</th>
-                <th className="table__num">{t('dataMining.cvGap')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(process.modelSelection.candidates as unknown as Record<string, number | string>[]).map(
-                (candidate) => {
-                  const chosen = candidate.algorithm === info.algorithm;
-                  return (
-                    <tr key={String(candidate.algorithm)}>
-                      <td className={chosen ? 'table__strong' : undefined}>
-                        {String(candidate.algorithm)}
-                        {chosen && (
-                          <span className="badge badge--brand" style={{ marginLeft: 8 }}>
-                            {t('dataMining.chosen')}
-                          </span>
-                        )}
-                      </td>
-                      <td className="table__num">
-                        {formatNumber(Number(candidate.cv_accuracy_mean), {
-                          maximumFractionDigits: 4,
-                        })}
-                      </td>
-                      <td className="table__num">
-                        {formatNumber(Number(candidate.cv_f1_macro_mean), {
-                          maximumFractionDigits: 4,
-                        })}
-                      </td>
-                      <td className="table__num">
-                        {formatNumber(Number(candidate.cv_recall_dropout_mean), {
-                          maximumFractionDigits: 4,
-                        })}
-                      </td>
-                      <td className="table__num">
-                        {formatNumber(Number(candidate.cv_selection_score), {
-                          maximumFractionDigits: 4,
-                        })}
-                      </td>
-                      <td className="table__num">
-                        {formatNumber(Number(candidate.overfit_gap), { maximumFractionDigits: 4 })}
-                      </td>
-                    </tr>
-                  );
-                },
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
       <div className="grid grid--halves">
-        <Card title={t('dataMining.confusionMatrix')} hint={t('dataMining.confusionMatrixHint')}>
+        <Card
+          title={t('dataMining.confusionMatrix')}
+          hint={t('dataMining.confusionMatrixHint')}
+          collapsible
+        >
           <div style={{ overflowX: 'auto' }}>
             <table className="matrix">
               <thead>
@@ -263,7 +213,7 @@ function ModelProcess() {
           </div>
         </Card>
 
-        <Card title={t('dataMining.byClass')} flush>
+        <Card title={t('dataMining.byClass')} flush collapsible>
           <div className="table-wrap">
             <table className="table">
               <thead>
@@ -301,7 +251,7 @@ function ModelProcess() {
         </Card>
       </div>
 
-      <Card title={t('dataMining.environment')}>
+      <Card title={t('dataMining.environment')} collapsible>
         <DefinitionList
           items={[
             {
@@ -315,8 +265,6 @@ function ModelProcess() {
           ]}
         />
       </Card>
-
-      <Disclaimer>{model.data.disclaimer}</Disclaimer>
     </div>
   );
 }
