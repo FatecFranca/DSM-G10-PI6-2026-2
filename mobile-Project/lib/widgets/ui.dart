@@ -17,27 +17,107 @@ Color priorityColor(BuildContext context, Priority value) => switch (value) {
   Priority.low => context.colors.success,
 };
 
-class AppCard extends StatelessWidget {
+class AppCard extends StatefulWidget {
   const AppCard({
     super.key,
     this.title,
+    this.titleInfo,
     this.hint,
     this.actions,
     this.flush = false,
+    this.collapsible = false,
     required this.child,
-  });
+  }) : assert(!collapsible || title != null, 'um card expansível precisa de título');
 
   final String? title;
+  final String? titleInfo;
   final String? hint;
   final List<Widget>? actions;
 
   final bool flush;
+  final bool collapsible;
   final Widget child;
+
+  @override
+  State<AppCard> createState() => _AppCardState();
+}
+
+class _AppCardState extends State<AppCard> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final hasHeader = title != null || (actions?.isNotEmpty ?? false);
+    final hasHeader = widget.title != null || (widget.actions?.isNotEmpty ?? false);
+    final showBody = !widget.collapsible || _expanded;
+
+    Widget header = Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        border: showBody ? Border(bottom: BorderSide(color: colors.border)) : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.title != null)
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          widget.title!,
+                          style: TextStyle(
+                            fontSize: AppSizes.fontCardTitle,
+                            fontWeight: FontWeight.w600,
+                            color: colors.text,
+                          ),
+                        ),
+                      ),
+                      if (widget.titleInfo != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 5),
+                          child: InfoTip(message: widget.titleInfo!),
+                        ),
+                    ],
+                  ),
+                ),
+                if (widget.collapsible)
+                  AnimatedRotation(
+                    turns: _expanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 150),
+                    child: Icon(Icons.expand_more, size: 20, color: colors.textSubtle),
+                  ),
+              ],
+            ),
+          if (widget.hint != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                widget.hint!,
+                style: TextStyle(fontSize: AppSizes.fontHint, color: colors.textMuted),
+              ),
+            ),
+          if (widget.actions?.isNotEmpty ?? false)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Wrap(spacing: 8, runSpacing: 8, children: widget.actions!),
+            ),
+        ],
+      ),
+    );
+
+    if (widget.collapsible) {
+      header = Semantics(
+        button: true,
+        expanded: _expanded,
+        child: InkWell(
+          onTap: () => setState(() => _expanded = !_expanded),
+          child: header,
+        ),
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -50,46 +130,38 @@ class AppCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (hasHeader)
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: colors.border)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (title != null)
-                    Text(
-                      title!,
-                      style: TextStyle(
-                        fontSize: AppSizes.fontCardTitle,
-                        fontWeight: FontWeight.w600,
-                        color: colors.text,
-                      ),
-                    ),
-                  if (hint != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        hint!,
-                        style: TextStyle(fontSize: AppSizes.fontHint, color: colors.textMuted),
-                      ),
-                    ),
-                  if (actions?.isNotEmpty ?? false)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Wrap(spacing: 8, runSpacing: 8, children: actions!),
-                    ),
-                ],
-              ),
-            ),
-          Padding(
-            padding: flush ? EdgeInsets.zero : const EdgeInsets.all(AppSizes.cardPadding),
-            child: child,
+          if (hasHeader) header,
+          AnimatedSize(
+            duration: const Duration(milliseconds: 150),
+            alignment: Alignment.topCenter,
+            child: showBody
+                ? Padding(
+                    padding: widget.flush
+                        ? EdgeInsets.zero
+                        : const EdgeInsets.all(AppSizes.cardPadding),
+                    child: widget.child,
+                  )
+                : const SizedBox(width: double.infinity),
           ),
         ],
       ),
+    );
+  }
+}
+
+class InfoTip extends StatelessWidget {
+  const InfoTip({super.key, required this.message, this.size = 15});
+
+  final String message;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: message,
+      triggerMode: TooltipTriggerMode.tap,
+      showDuration: const Duration(seconds: 8),
+      child: Icon(Icons.info_outline, size: size, color: context.colors.textSubtle),
     );
   }
 }
@@ -102,12 +174,14 @@ class StatCard extends StatelessWidget {
     required this.label,
     required this.value,
     this.meta,
+    this.labelInfo,
     this.tone = StatTone.normal,
   });
 
   final String label;
   final String value;
   final String? meta;
+  final String? labelInfo;
   final StatTone tone;
 
   @override
@@ -146,17 +220,29 @@ class StatCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label.toUpperCase(),
-          maxLines: StatGrid.labelLines,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: AppSizes.fontLabel,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-            height: StatGrid.labelLineHeight,
-            color: colors.textMuted,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: Text(
+                label.toUpperCase(),
+                maxLines: StatGrid.labelLines,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: AppSizes.fontLabel,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                  height: StatGrid.labelLineHeight,
+                  color: colors.textMuted,
+                ),
+              ),
+            ),
+            if (labelInfo != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 5),
+                child: InfoTip(message: labelInfo!, size: 13),
+              ),
+          ],
         ),
         const SizedBox(height: 6),
         Text(
@@ -729,9 +815,16 @@ class PaginationBar extends StatelessWidget {
 }
 
 class AppTabs extends StatelessWidget {
-  const AppTabs({super.key, required this.labels, required this.active, required this.onChange});
+  const AppTabs({
+    super.key,
+    required this.labels,
+    this.infos = const {},
+    required this.active,
+    required this.onChange,
+  });
 
   final List<String> labels;
+  final Map<int, String> infos;
   final int active;
   final ValueChanged<int> onChange;
 
@@ -760,13 +853,23 @@ class AppTabs extends StatelessWidget {
                       ),
                     ),
                   ),
-                  child: Text(
-                    labels[index],
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: index == active ? colors.brand : colors.textMuted,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        labels[index],
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: index == active ? colors.brand : colors.textMuted,
+                        ),
+                      ),
+                      if (infos[index] != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 5),
+                          child: InfoTip(message: infos[index]!, size: 14),
+                        ),
+                    ],
                   ),
                 ),
               ),

@@ -45,6 +45,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
         children: [
           AppTabs(
             labels: tabs,
+            infos: {if (can.runAnalyses) 0: t.t('analysis.simulateHint')},
             active: _tab.clamp(0, tabs.length - 1),
             onChange: (index) => setState(() => _tab = index),
           ),
@@ -155,7 +156,6 @@ class _SimulateTabState extends State<_SimulateTab> {
 
     return AppStack(
       children: [
-        AppAlert(message: t.t('analysis.simulateHint')),
         if (_generalError != null) AppAlert(tone: AlertTone.danger, message: _generalError!),
         if (_result != null)
           AnalysisResultView(result: _result!)

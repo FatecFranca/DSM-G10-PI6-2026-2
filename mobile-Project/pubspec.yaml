@@ -41,6 +41,8 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
 
 flutter:
   uses-material-design: true
@@ -48,3 +50,26 @@ flutter:
   assets:
     # Copias fieis de frontend-Project/src/locales - mesmas chaves, mesmos textos.
     - assets/locales/
+    - assets/brand/
+
+flutter_launcher_icons:
+  image_path: branding/app_icon.png
+  android: true
+  adaptive_icon_background: "#070b15"
+  adaptive_icon_foreground: branding/app_icon_foreground.png
+  adaptive_icon_monochrome: branding/app_icon_foreground.png
+  ios: true
+  remove_alpha_ios: true
+  windows:
+    generate: true
+    image_path: branding/app_icon.png
+    icon_size: 256
+
+flutter_native_splash:
+  color: "#070b15"
+  image: branding/splash_logo.png
+  android_12:
+    color: "#070b15"
+    image: branding/splash_android12.png
+    icon_background_color: "#070b15"
+  web: false

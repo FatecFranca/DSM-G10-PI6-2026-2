@@ -180,27 +180,21 @@ class _DashboardBody extends StatelessWidget {
 
         AppCard(
           title: t.t('dashboard.priorityDistribution'),
+          titleInfo: '${t.t('analysis.supportTool')} ${t.t('analysis.calibrationNote')}',
           child: priorityDistribution.total == 0
               ? EmptyState(title: t.t('dashboard.recentAnalysesEmpty'))
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    BarList(
-                      items: [
-                        for (final item in priorityDistribution.items)
-                          BarItem(
-                            label: t.t('priority.${item.value}'),
-                            value: item.count.toDouble(),
-                            color: Priority.fromApi(item.value) == null
-                                ? colors.brand
-                                : priorityColor(context, Priority.fromApi(item.value)!),
-                            display: '${t.formatNumber(item.count)} · '
-                                '${t.formatPercent(priorityDistribution.total > 0 ? item.count / priorityDistribution.total : 0, 0)}',
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    const Disclaimer(),
+              : BarList(
+                  items: [
+                    for (final item in priorityDistribution.items)
+                      BarItem(
+                        label: t.t('priority.${item.value}'),
+                        value: item.count.toDouble(),
+                        color: Priority.fromApi(item.value) == null
+                            ? colors.brand
+                            : priorityColor(context, Priority.fromApi(item.value)!),
+                        display: '${t.formatNumber(item.count)} · '
+                            '${t.formatPercent(priorityDistribution.total > 0 ? item.count / priorityDistribution.total : 0, 0)}',
+                      ),
                   ],
                 ),
         ),
@@ -301,47 +295,6 @@ class _DashboardBody extends StatelessWidget {
                   ],
                 ),
         ),
-
-        if (dashboard.lastModelUsed != null)
-          AppCard(
-            title: t.t('dashboard.modelInUse'),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  dashboard.lastModelUsed!.algorithm,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: colors.text,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  dashboard.lastModelUsed!.version,
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                    color: colors.textMuted,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${t.t('analysis.date')}: '
-                  '${t.formatDate(dashboard.lastModelUsedAt, withTime: true)}',
-                  style: TextStyle(fontSize: AppSizes.fontSmall, color: colors.textMuted),
-                ),
-                const SizedBox(height: 12),
-                AppButton(
-                  label: '${t.t('dataMining.modelProcess')} →',
-                  small: true,
-                  onPressed: () => context.go('/data-mining'),
-                ),
-              ],
-            ),
-          ),
-
-        Disclaimer(text: dashboard.disclaimer),
       ],
     );
   }

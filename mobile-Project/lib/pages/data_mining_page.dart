@@ -45,32 +45,35 @@ class _ModelProcess extends StatelessWidget {
 
         return AppStack(
           children: [
-            AppAlert(message: t.t('dataMining.modelProcessHint')),
-
             StatGrid(
               children: [
                 StatCard(
                   label: t.t('analysis.algorithm'),
                   value: model.algorithm,
+                  labelInfo: t.t('dataMining.algorithmInfo'),
                   tone: StatTone.accent,
                 ),
                 StatCard(
                   label: t.t('dataMining.testAccuracy'),
                   value: t.formatPercent(model.testAccuracy, 1),
+                  labelInfo: t.t('dataMining.testAccuracyInfo'),
                 ),
                 StatCard(
                   label: t.t('dataMining.balancedAccuracy'),
                   value: t.formatPercent(model.testBalancedAccuracy, 1),
                   meta: t.t('dataMining.balancedAccuracyHint'),
+                  labelInfo: t.t('dataMining.balancedAccuracyInfo'),
                 ),
                 StatCard(
                   label: t.t('dataMining.testF1'),
                   value: t.formatNumber(model.testF1Macro, maximumFractionDigits: 4),
+                  labelInfo: t.t('dataMining.testF1Info'),
                 ),
                 StatCard(
                   label: t.t('dataMining.recallDropout'),
                   value: t.formatPercent(model.testRecallDropout, 1),
                   meta: t.t('dataMining.recallDropoutHint'),
+                  labelInfo: t.t('dataMining.recallDropoutInfo'),
                   tone: StatTone.accent,
                 ),
                 StatCard(
@@ -78,6 +81,7 @@ class _ModelProcess extends StatelessWidget {
                   value: t.formatNumber(model.generalizationGap, maximumFractionDigits: 4),
                   meta: '${t.t('dataMining.devAccuracy')}: '
                       '${t.formatPercent(model.devAccuracy, 1)}',
+                  labelInfo: t.t('dataMining.testGapInfo'),
                   tone: model.generalizationGap > 0.1
                       ? StatTone.warning
                       : StatTone.success,
@@ -87,6 +91,7 @@ class _ModelProcess extends StatelessWidget {
 
             AppCard(
               title: t.t('dataMining.stepData'),
+              collapsible: true,
               child: DefinitionList(
                 items: [
                   (
@@ -125,6 +130,7 @@ class _ModelProcess extends StatelessWidget {
 
             AppCard(
               title: t.t('dataMining.stepPreparation'),
+              collapsible: true,
               child: DefinitionList(
                 items: [
                   for (final entry in model.preparation.entries)
@@ -138,6 +144,7 @@ class _ModelProcess extends StatelessWidget {
               hint: model.importanceMethod == null
                   ? null
                   : '${t.t('dataMining.importanceMethod')}: ${model.importanceMethod}',
+              collapsible: true,
               child: model.importance.isEmpty
                   ? EmptyState(title: t.t('dataMining.importanceEmpty'))
                   : Column(
@@ -167,29 +174,16 @@ class _ModelProcess extends StatelessWidget {
             ),
 
             AppCard(
-              title: t.t('dataMining.stepSelection'),
-              hint: model.selectionRationale,
-              flush: true,
-              child: Column(
-                children: [
-                  for (final candidate in model.candidates)
-                    _CandidateTile(
-                      candidate: candidate,
-                      chosen: candidate.algorithm == model.algorithm,
-                    ),
-                ],
-              ),
-            ),
-
-            AppCard(
               title: t.t('dataMining.confusionMatrix'),
               hint: t.t('dataMining.confusionMatrixHint'),
-              child: _ConfusionMatrixTable(matrix: model.confusionMatrix),
+              collapsible: true,
+              child: ConfusionMatrixTable(matrix: model.confusionMatrix),
             ),
 
             AppCard(
               title: t.t('dataMining.byClass'),
               flush: true,
+              collapsible: true,
               child: Column(
                 children: [
                   for (final label in model.confusionMatrix.labels)
@@ -204,6 +198,7 @@ class _ModelProcess extends StatelessWidget {
 
             AppCard(
               title: t.t('dataMining.environment'),
+              collapsible: true,
               child: DefinitionList(
                 items: [
                   (
@@ -215,8 +210,6 @@ class _ModelProcess extends StatelessWidget {
                 ],
               ),
             ),
-
-            Disclaimer(text: model.disclaimer),
           ],
         );
       },
@@ -224,84 +217,8 @@ class _ModelProcess extends StatelessWidget {
   }
 }
 
-class _CandidateTile extends StatelessWidget {
-  const _CandidateTile({required this.candidate, required this.chosen});
-
-  final ModelCandidate candidate;
-  final bool chosen;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final t = context.i18n;
-
-    Widget metric(String label, double value) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(fontSize: 10.5, color: colors.textMuted),
-            ),
-            Text(
-              t.formatNumber(value, maximumFractionDigits: 4),
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: colors.text,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            ),
-          ],
-        );
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      decoration: BoxDecoration(
-        color: chosen ? colors.soft(colors.brand) : null,
-        border: Border(bottom: BorderSide(color: colors.border)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  candidate.algorithm,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: chosen ? FontWeight.w700 : FontWeight.w500,
-                    color: colors.text,
-                  ),
-                ),
-              ),
-              if (chosen) AppBadge(label: t.t('dataMining.chosen')),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(child: metric(t.t('dataMining.cvAccuracy'), candidate.cvAccuracyMean)),
-              Expanded(child: metric(t.t('dataMining.cvF1'), candidate.cvF1MacroMean)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(child: metric(t.t('dataMining.recallDropout'), candidate.cvRecallDropoutMean)),
-              Expanded(child: metric(t.t('dataMining.selectionScore'), candidate.cvSelectionScore)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          metric(t.t('dataMining.cvGap'), candidate.overfitGap),
-        ],
-      ),
-    );
-  }
-}
-
-class _ConfusionMatrixTable extends StatelessWidget {
-  const _ConfusionMatrixTable({required this.matrix});
+class ConfusionMatrixTable extends StatelessWidget {
+  const ConfusionMatrixTable({super.key, required this.matrix});
 
   final ConfusionMatrix matrix;
 
@@ -312,57 +229,61 @@ class _ConfusionMatrixTable extends StatelessWidget {
 
     if (matrix.labels.isEmpty) return const SizedBox.shrink();
 
-    Widget cell(String text, {bool header = false, bool diagonal = false}) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
-          decoration: BoxDecoration(
-            color: header
-                ? colors.surfaceAlt
-                : diagonal
-                    ? colors.soft(colors.success)
-                    : null,
-            border: Border.all(color: colors.border),
-          ),
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: header ? 10.5 : 12.5,
-              fontWeight: header || diagonal ? FontWeight.w600 : FontWeight.w400,
-              color: header
-                  ? colors.textMuted
-                  : diagonal
-                      ? colors.softText(colors.success)
-                      : colors.textMuted,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        );
+    Widget cell(String text, {bool header = false, bool diagonal = false, bool shrink = false}) {
+      final label = Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: header ? 10.5 : 12.5,
+          fontWeight: header || diagonal ? FontWeight.w600 : FontWeight.w400,
+          color: header
+              ? colors.textMuted
+              : diagonal
+                  ? colors.softText(colors.success)
+                  : colors.textMuted,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      );
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Table(
-        defaultColumnWidth: const FixedColumnWidth(96),
-        children: [
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 9),
+        decoration: BoxDecoration(
+          color: header
+              ? colors.surfaceAlt
+              : diagonal
+                  ? colors.soft(colors.success)
+                  : null,
+          border: Border.all(color: colors.border),
+        ),
+        child: shrink ? FittedBox(fit: BoxFit.scaleDown, child: label) : label,
+      );
+    }
+
+    return Table(
+      columnWidths: const {0: FlexColumnWidth(1.25)},
+      defaultColumnWidth: const FlexColumnWidth(),
+      defaultVerticalAlignment: TableCellVerticalAlignment.intrinsicHeight,
+      children: [
+        TableRow(
+          children: [
+            cell('${t.t('dataMining.real')} \\ ${t.t('dataMining.predicted')}', header: true),
+            for (final label in matrix.labels)
+              cell(t.t('classification.$label'), header: true, shrink: true),
+          ],
+        ),
+        for (var row = 0; row < matrix.matrix.length; row++)
           TableRow(
             children: [
-              cell('${t.t('dataMining.real')} \\ ${t.t('dataMining.predicted')}', header: true),
-              for (final label in matrix.labels)
-                cell(t.t('classification.$label'), header: true),
+              cell(t.t('classification.${matrix.labels[row]}'), header: true, shrink: true),
+              for (var column = 0; column < matrix.matrix[row].length; column++)
+                cell(
+                  t.formatNumber(matrix.matrix[row][column]),
+                  diagonal: row == column,
+                  shrink: true,
+                ),
             ],
           ),
-          for (var row = 0; row < matrix.matrix.length; row++)
-            TableRow(
-              children: [
-                cell(t.t('classification.${matrix.labels[row]}'), header: true),
-                for (var column = 0; column < matrix.matrix[row].length; column++)
-                  cell(
-                    t.formatNumber(matrix.matrix[row][column]),
-                    diagonal: row == column,
-                  ),
-              ],
-            ),
-        ],
-      ),
+      ],
     );
   }
 }

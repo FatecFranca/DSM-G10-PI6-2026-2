@@ -111,6 +111,39 @@ void main() {
     );
   });
 
+  testWidgets('ícone de informação no rótulo não estoura o cartão com fonte a 200%', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(Brightness.dark),
+        home: const MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(2.0)),
+          child: Scaffold(
+            body: StatGrid(
+              children: [
+                StatCard(
+                  label: 'Algoritmo',
+                  value: 'LogisticRegression',
+                  labelInfo: 'As etapas que o modelo em uso atravessou.',
+                  tone: StatTone.accent,
+                ),
+                StatCard(label: 'Acurácia no teste', value: '76,8%'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
+  });
+
   for (final escala in [1.0, 1.15, 1.3, 1.5, 2.0]) {
     testWidgets('fonte do sistema a ${(escala * 100).round()}% nao faz o cartao transbordar', (
       tester,

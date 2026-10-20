@@ -99,6 +99,7 @@ class _StudentsPageState extends State<StudentsPage> {
 
     return AppScaffold(
       title: t.t('students.title'),
+      titleInfo: can.runAnalyses ? t.t('analysis.supportTool') : null,
       subtitle: t.t('students.subtitle'),
       onRefresh: () async => _listKey.currentState?.refresh(),
       floatingActionButton: can.writeStudents
@@ -307,9 +308,7 @@ class _StudentsPageState extends State<StudentsPage> {
                 ),
               ],
             ),
-          ),
-          if (can.runAnalyses) AppAlert(message: t.t('analysis.supportTool')),
-        ],
+          ),        ],
       ),
     );
   }

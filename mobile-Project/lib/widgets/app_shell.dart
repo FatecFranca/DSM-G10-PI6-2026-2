@@ -6,6 +6,7 @@ import '../core/theme.dart';
 import '../state/auth_state.dart';
 import '../state/i18n_state.dart';
 import '../state/theme_state.dart';
+import 'ui.dart';
 
 class _NavItem {
   const _NavItem(this.route, this.labelKey, this.icon, {this.exact = false});
@@ -35,6 +36,7 @@ class AppScaffold extends StatelessWidget {
   const AppScaffold({
     super.key,
     required this.title,
+    this.titleInfo,
     this.subtitle,
     this.actions,
     this.floatingActionButton,
@@ -43,6 +45,7 @@ class AppScaffold extends StatelessWidget {
   });
 
   final String title;
+  final String? titleInfo;
   final String? subtitle;
   final List<Widget>? actions;
   final Widget? floatingActionButton;
@@ -68,7 +71,7 @@ class AppScaffold extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PageHeader(title: title, subtitle: subtitle, actions: actions),
+          PageHeader(title: title, titleInfo: titleInfo, subtitle: subtitle, actions: actions),
           const SizedBox(height: AppSizes.gap),
           child,
         ],
@@ -109,13 +112,9 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Row(
         children: [
-          _BrandMark(size: 28, fontSize: 11),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Text(
-              t.t('app.short'),
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.text),
-            ),
+          Semantics(
+            label: t.t('app.title'),
+            child: _PaeLogo(height: 20, color: colors.text),
           ),
         ],
       ),
@@ -204,12 +203,12 @@ class AppDrawer extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(18, 18, 14, 18),
               child: Row(
                 children: [
-                  _BrandMark(size: 34, fontSize: 13),
-                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const _PaeLogo(height: 26, color: Colors.white),
+                        const SizedBox(height: 10),
                         Text(
                           t.t('app.title'),
                           style: const TextStyle(
@@ -341,36 +340,36 @@ class _DrawerLink extends StatelessWidget {
   }
 }
 
-class _BrandMark extends StatelessWidget {
-  const _BrandMark({required this.size, required this.fontSize});
+class _PaeLogo extends StatelessWidget {
+  const _PaeLogo({required this.height, required this.color});
 
-  final double size;
-  final double fontSize;
+  static const double _aspectRatio = 1216 / 462;
+
+  final double height;
+  final Color color;
 
   @override
-  Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: context.colors.brand,
-          borderRadius: BorderRadius.circular(size * 0.26),
-        ),
-        child: Text(
-          context.i18n.t('app.short'),
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
+  Widget build(BuildContext context) => Image.asset(
+        'assets/brand/pae_logo.png',
+        height: height,
+        width: height * _aspectRatio,
+        color: color,
+        filterQuality: FilterQuality.medium,
+        excludeFromSemantics: true,
       );
 }
 
 class PageHeader extends StatelessWidget {
-  const PageHeader({super.key, required this.title, this.subtitle, this.actions});
+  const PageHeader({
+    super.key,
+    required this.title,
+    this.titleInfo,
+    this.subtitle,
+    this.actions,
+  });
 
   final String title;
+  final String? titleInfo;
   final String? subtitle;
   final List<Widget>? actions;
 
@@ -381,14 +380,25 @@ class PageHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: AppSizes.fontPageTitle,
-            fontWeight: FontWeight.w700,
-            height: 1.25,
-            color: colors.text,
-          ),
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: AppSizes.fontPageTitle,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                  color: colors.text,
+                ),
+              ),
+            ),
+            if (titleInfo != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: InfoTip(message: titleInfo!, size: 17),
+              ),
+          ],
         ),
         if (subtitle != null)
           Padding(
@@ -484,7 +494,7 @@ class AuthScaffold extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            _BrandMark(size: 34, fontSize: 13),
+                            _PaeLogo(height: 24, color: colors.text),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
