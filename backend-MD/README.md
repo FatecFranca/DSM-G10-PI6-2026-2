@@ -140,25 +140,68 @@ candidatos — incluindo variantes com `class_weight="balanced"` — são compar
 validação cruzada de 10 folds **apenas sobre o desenvolvimento**. O conjunto de teste não
 participa da escolha: ele é usado uma única vez, no fim, para a estimativa honesta.
 
-A seleção tem três etapas:
+O critério é fixado antes de olhar os resultados e tem quatro etapas
+(`select_final` em `ML/train_model.py`):
 
-1. **Descarte por memorização:** candidatos cuja distância entre acurácia de treino e de
-   validação passa de 0,05 são eliminados. Isso remove Random Forest (gap 0,21),
-   Gradient Boosting, SVC e as árvores de decisão.
+1. **Filtro de estabilidade:** seguem na disputa só os candidatos cuja distância entre
+   acurácia de treino e de validação fica em até `MAX_OVERFIT_GAP` (0,05). É uma
+   **preferência deliberada por parcimônia e estabilidade**, não a afirmação de que os
+   excluídos generalizariam pior: num ensemble essa distância é estrutural (uma floresta
+   com folhas pequenas ajusta quase todo o treino por construção). Por isso o custo do
+   corte é medido e publicado na etapa 4.
 2. **Score de seleção:** `0,50 × F1 macro + 0,50 × revocação de Dropout`. O F1 macro cuida
    do equilíbrio entre as três classes desbalanceadas; a revocação de `Dropout` entra com
    peso igual porque, num sistema de apoio à identificação de estudantes em risco, deixar
    de sinalizar quem evade é o erro caro.
-3. **Empate:** candidatos dentro de 0,01 do melhor score são tratados como equivalentes;
-   entre eles vence o de maior score, com a menor distância treino-validação como critério
-   de desempate.
+3. **Desempate por parcimônia:** candidatos a até `EQUIVALENCE_TOLERANCE` (0,01) do melhor
+   score são tratados como equivalentes e, entre eles, vence o de **menor distância
+   treino-validação** — o mais estável, não o de maior score bruto.
+4. **Custo da escolha:** frente ao melhor candidato removido pelo filtro, registra-se quanto
+   se abriu mão em F1 macro e quanto se ganhou ou perdeu em revocação de `Dropout`
+   (`selection_criteria.cost_vs_best_excluded`).
 
 Por que medir na validação cruzada e não no teste: selecionar pelo teste transforma o teste
 em validação e infla as métricas publicadas. Medido no projeto, o otimismo era de ~0,016 de
 F1 macro — e a escolha mudava.
 
-O `model_metadata.json` registra a comparação completa dos candidatos, o critério
-aplicado e a justificativa da escolha.
+#### Resultado do treino atual
+
+Modelo `LogisticRegression-20260908T131859`. Médias da validação cruzada de 10 folds sobre
+o conjunto de desenvolvimento, ordenadas pelo score:
+
+| Algoritmo | Acurácia | F1 macro | Revocação Dropout | Score | Distância treino-validação | Situação |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| RandomForestBalanced | 0,7776 | 0,7105 | 0,7583 | 0,7344 | 0,2065 | fora (estabilidade) |
+| GradientBoostingClassifier | 0,7742 | 0,6979 | 0,7653 | 0,7316 | 0,0727 | fora (estabilidade) |
+| RandomForestClassifier | 0,7737 | 0,6869 | 0,7618 | 0,7244 | 0,1956 | fora (estabilidade) |
+| **LogisticRegression** | 0,7652 | 0,6774 | 0,7635 | 0,7205 | 0,0087 | **escolhido** |
+| LogisticRegressionBalanced | 0,7471 | 0,7069 | 0,7178 | 0,7124 | 0,0120 | equivalente |
+| LinearDiscriminantAnalysisDropoutPrior | 0,7420 | 0,6910 | 0,7117 | 0,7013 | 0,0108 | |
+| SVC | 0,7587 | 0,6711 | 0,7284 | 0,6998 | 0,0692 | fora (estabilidade) |
+| SVCBalanced | 0,7395 | 0,6981 | 0,6906 | 0,6944 | 0,0807 | fora (estabilidade) |
+| LinearDiscriminantAnalysis | 0,7570 | 0,6817 | 0,6905 | 0,6861 | 0,0068 | |
+| DecisionTreeClassifier | 0,7366 | 0,6634 | 0,7019 | 0,6826 | 0,0659 | fora (estabilidade) |
+| DecisionTreeBalanced | 0,7070 | 0,6713 | 0,6711 | 0,6712 | 0,0622 | fora (estabilidade) |
+| GaussianNB | 0,6719 | 0,5705 | 0,6905 | 0,6305 | 0,0066 | |
+| KNeighborsClassifier | 0,7109 | 0,5987 | 0,6483 | 0,6235 | 0,0343 | |
+
+- **Por que `LogisticRegression`:** tem o melhor score entre os elegíveis (0,7205). O único
+  equivalente, `LogisticRegressionBalanced` (0,7124), tem distância treino-validação maior.
+- **Custo frente ao melhor excluído (`RandomForestBalanced`):** −0,0331 de F1 macro e
+  **+0,0052 de revocação de `Dropout`**. O modelo escolhido encontra mais evasores que a
+  floresta; toda a vantagem dela está no F1 macro, concentrada nas classes que não são
+  `Dropout`, sobretudo `Enrolled`. Esse é o argumento para defender a escolha, não a ideia
+  de que a floresta "memoriza".
+- **No teste (usado uma única vez):** acurácia 0,7684, acurácia balanceada 0,6754, F1 macro
+  0,6826, revocação de `Dropout` 0,7676.
+
+Esta tabela é um retrato do treino de 08/09/2026: a seleção é dinâmica, e um retreino pode
+eleger outro algoritmo. A fonte de verdade é o `model_metadata.json` (`candidates`,
+`selection_criteria` e o texto completo em `selection_rationale`), exposto em
+`GET /api/models/active`. Ao retreinar, atualize esta seção.
+
+A comparação dos candidatos não aparece nas telas da Web nem do Mobile. Ela é informação
+técnica de quem desenvolve e defende o modelo, e por isso fica documentada aqui.
 
 ### Reprodutibilidade
 

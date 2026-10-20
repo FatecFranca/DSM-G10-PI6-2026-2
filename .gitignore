@@ -49,6 +49,7 @@ mobile-Project/**/*.sln.docstates
 
 # Android
 mobile-Project/android/.gradle
+mobile-Project/android/.kotlin
 mobile-Project/android/local.properties
 mobile-Project/android/captures
 mobile-Project/android/gradlew

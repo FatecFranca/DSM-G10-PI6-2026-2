@@ -19,7 +19,7 @@ const router = Router();
  *       Lido diretamente dos artefatos em disco — é a verdade sobre o modelo que
  *       responde às classificações agora, independente do estado do banco.
  *
- *       Inclui os metadados de reprodutibilidade exigidos pela seção 4, item 11:
+ *       Inclui os metadados de reprodutibilidade exigidos pela seção 4, item 10:
  *       algoritmo, hiperparâmetros, versão/impressão digital do dataset de treino,
  *       ordem das features, métricas de avaliação, comparação com os candidatos
  *       e a justificativa da escolha.
