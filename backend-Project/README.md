@@ -92,12 +92,9 @@ Login em `POST /api/auth/login` devolve um JWT, enviado depois em
 | `VIEWER` | Somente leitura no escopo da própria instituição |
 
 **Escopo por instituição:** usuários que não são ADMIN só alcançam dados da instituição a
-que estão vinculados. A regra fica em um lugar só (`middlewares/auth.js`), aplicada nas
-consultas Prisma.
+que estão vinculados (`middlewares/auth.js`).
 
-O usuário é relido do banco a cada requisição, em vez de confiar apenas no conteúdo do
-token: um usuário desativado ou rebaixado perde acesso imediatamente, sem esperar o token
-expirar.
+Desativar ou rebaixar um usuário tem efeito imediato, sem esperar o token expirar.
 
 ---
 
@@ -110,18 +107,15 @@ cliente → backend-Project (valida, aplica regra de negócio)
         → cliente
 ```
 
-Autenticação intra-serviço por **API Key** no header `X-API-Key`, nunca o JWT do usuário —
-são credenciais de camadas diferentes: o JWT identifica a pessoa, a API Key identifica o
-serviço.
+A chamada ao `backend-MD` é autenticada por **API Key** no header `X-API-Key`
+(`MD_API_KEY`, mesmo valor nos dois serviços).
 
-Somente `src/services/mdClient.js` conhece o endereço do `backend-MD`. É também onde as
-falhas dele são traduzidas: um `422` por atributo ausente continua `422` (o dado que chegou
-aqui está errado), mas um `401` por API Key inválida vira `502` — é problema de
-configuração do servidor, e devolver `401` faria o usuário achar que a sessão expirou.
+`src/services/mdClient.js` é o único módulo que chama o `backend-MD` e traduz as falhas
+dele: atributo inválido continua `422`; API Key recusada vira `502`
+(`ML_SERVICE_UNAUTHORIZED`).
 
-**Prioridade de acompanhamento** (`src/modules/analyses/priority.js`) é regra de negócio
-deste serviço: o `backend-MD` devolve classe e confiança; decidir o que a instituição faz
-com isso é daqui.
+**Prioridade de acompanhamento** (`src/modules/analyses/priority.js`): a partir da classe
+e da confiança devolvidas pelo `backend-MD`, este serviço define a prioridade.
 
 | Resultado | Prioridade | Leitura |
 | --- | --- | --- |
@@ -130,10 +124,6 @@ com isso é daqui.
 | `Enrolled` | MEDIUM | Observação continuada (desfecho em aberto) |
 | `Graduate`, confiança ≥ 0,6 | LOW | Sem indicativo de prioridade |
 | `Graduate`, confiança < 0,6 | MEDIUM | Observação continuada |
-
-A prioridade vem exclusivamente da classificação e da confiança do modelo. Até 03/09/2026
-um perfil de agrupamento (`KMeans`) podia elevá-la em um nível; a clusterização foi
-removida do projeto (ver seção 10 do `CONTEXT.md` do `backend-MD`).
 
 ### Lote de análise via mensageria (Kafka REST, Aiven)
 
@@ -229,24 +219,17 @@ Formato único: `{ "error": "<CODE>", "message": "...", "details": ... }`
 | `users` | Contas de acesso, papel e vínculo com instituição |
 | `institutions` | Entidades atendidas; delimitam escopo de acesso |
 | `students` | Cadastro + atributos acadêmicos/socioeconômicos + resumo da última análise |
-| `analyses` | Histórico imutável: qual estudante, quando, qual resultado, qual versão do modelo |
+| `analyses` | Histórico de análises: qual estudante, quando, qual resultado, qual versão do modelo (`modelVersion`, `algorithm`) |
 | `analysis_jobs` | Lotes enviados pela mensageria: situação (`QUEUED`/`DONE`/`FAILED`), itens e contagens |
 | `follow_ups` | Ações tomadas a partir das análises |
 
-Decisões que valem registrar:
-
-- **Análise nunca é sobrescrita.** Cada execução gera um novo registro; sem isso o
-  histórico perderia sentido.
-- **`featuresSnapshot`** guarda cópia dos atributos enviados: sem ela, uma análise antiga
-  não poderia ser auditada depois que o cadastro do estudante mudasse.
-- **Resumo desnormalizado** no estudante (`lastClassification`, `lastPriority`, …) para
-  listagens e painéis não precisarem varrer o histórico. Gravado na mesma transação da
-  análise, para o estudante nunca apontar para um resultado não persistido.
-- **Desativação em vez de exclusão** para usuários, instituições e estudantes: todos são
-  referenciados por histórico.
-- **Só a identidade do modelo** (`modelVersion`, `algorithm`) é guardada aqui. Os
-  metadados técnicos (hiperparâmetros, métricas de treino, versão do dataset) ficam no
-  `backend-MD` e não são copiados.
+- Cada análise gera um novo registro em `analyses`, com cópia dos atributos usados
+  (`featuresSnapshot`); registros anteriores não são alterados.
+- O estudante guarda um resumo da última análise (`lastClassification`, `lastPriority`, …),
+  gravado na mesma transação da análise.
+- `DELETE` em usuários, instituições e estudantes **desativa** o registro, sem excluí-lo.
+- Os metadados técnicos do modelo (hiperparâmetros, métricas, dataset) ficam no
+  `backend-MD`; este serviço os repassa em `GET /api/datamining/model`.
 
 ---
 
@@ -281,9 +264,3 @@ backend-Project/
     ├── app.js
     └── server.js
 ```
-
-## O que NÃO pertence a este serviço
-
-Treinamento de modelos, algoritmos de classificação, experimentos de Mineração de Dados,
-componentes de UI e lógica de apresentação. A inteligência analítica fica isolada no
-`backend-MD`.
