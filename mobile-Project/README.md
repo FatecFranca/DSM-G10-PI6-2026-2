@@ -34,25 +34,20 @@ flutter pub get
 flutter run
 ```
 
-### A URL da API muda conforme onde o app roda
+### Para onde o app aponta
 
-`localhost` significa coisas diferentes em cada lugar, e é aqui que a maioria dos "não
-conecta" acontece:
+O app usa o `backend-Project` publicado na VM:
+`https://pae-pi6.canadacentral.cloudapp.azure.com/api`, definido em
+`lib/core/config.dart` (`AppConfig.apiBaseUrl`).
 
-| Onde o app roda | Endereço do `backend-Project` |
+Para usar um back-end local, troque esse valor. `localhost` significa coisas diferentes
+em cada lugar, e é aqui que a maioria dos "não conecta" acontece:
+
+| Onde o app roda | Endereço do `backend-Project` local |
 | --- | --- |
-| Emulador Android | `http://10.0.2.2:3004/api` — **padrão do app**, não precisa configurar |
-| Simulador iOS / desktop | `http://localhost:3004/api` — padrão nessas plataformas |
-| Celular físico no Wi-Fi | IP da sua máquina na rede, informado na hora de rodar |
-
-Para o celular físico:
-
-```bash
-flutter run --dart-define=API_BASE_URL=http://192.168.0.10:3004/api
-```
-
-Troque `192.168.0.10` pelo IP da máquina que roda o `backend-Project` (`ipconfig` no
-Windows). O `CORS_ORIGINS` do back-end não interfere aqui: CORS é regra de navegador, e o
+| Emulador Android | `http://10.0.2.2:3004/api` |
+| Simulador iOS / desktop | `http://localhost:3004/api` |
+| Celular físico no Wi-Fi | `http://<IP da máquina>:3004/api` (`ipconfig` no Windows) | O `CORS_ORIGINS` do back-end não interfere aqui: CORS é regra de navegador, e o
 app não é um.
 
 Entre com um dos usuários criados pelo seed do `backend-Project` — por exemplo
@@ -68,7 +63,7 @@ O Android 9+ e o iOS bloqueiam HTTP sem TLS por padrão. Para o ambiente local e
 - iOS: `NSAllowsLocalNetworking`, que libera a rede local sem liberar HTTP para a
   internet.
 
-Em produção, aponte `API_BASE_URL` para um endereço HTTPS.
+O endereço da VM é HTTPS, então funciona também na variante `release`.
 
 ### Verificação
 
@@ -164,7 +159,7 @@ mobile-Project/
 ├── assets/locales/            pt-BR · en-US · es-ES (cópias fiéis das da Web)
 ├── lib/
 │   ├── core/
-│   │   ├── config.dart        única URL de API, por plataforma e --dart-define
+│   │   ├── config.dart        única URL de API (a da VM)
 │   │   ├── api_client.dart    cliente HTTP, erros e token seguro
 │   │   └── theme.dart         tokens do global.css portados
 │   ├── models/                contratos da API em Dart
