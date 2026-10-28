@@ -23,12 +23,7 @@ frontend-Project/.IA
 frontend-Project/dist
 frontend-Project/tsconfig.tsbuildinfo
 
-# --- mobile-Project (Flutter) -------------------------------------------------
-# Consolidado aqui: o `flutter create` gera um .gitignore por plataforma
-# (android/, ios/, windows/), mas este repositorio mantem um unico arquivo na
-# raiz. As regras abaixo sao as daqueles arquivos, com o prefixo do modulo.
-
-# Contexto local de IA, como nos demais modulos
+# mobile-Project
 mobile-Project/.IA
 
 # Artefatos de build e cache de ferramenta
@@ -59,7 +54,7 @@ mobile-Project/android/**/GeneratedPluginRegistrant.java
 mobile-Project/android/**/.cxx
 mobile-Project/android/**/hs_err_pid*.log
 
-# Android — credenciais de assinatura. NUNCA versionar.
+# Android - assinatura
 mobile-Project/android/key.properties
 mobile-Project/**/*.keystore
 mobile-Project/**/*.jks

@@ -47,8 +47,6 @@ declare global {
   }
 }
 
-// O token vem do login, não da configuração: guardá-lo em Cypress.expose() o
-// entregaria ao código do navegador, que é justamente o que a depreciação evita.
 let authToken: string | null = null
 
 function apiBaseUrl(): string {

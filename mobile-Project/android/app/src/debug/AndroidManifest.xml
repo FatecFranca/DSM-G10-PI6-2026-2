@@ -5,10 +5,6 @@
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <!-- Em desenvolvimento o backend-Project roda em http://10.0.2.2:3004 (a
-         maquina host, vista de dentro do emulador). O Android 9+ bloqueia
-         trafego em texto claro por padrao, entao a excecao vale SOMENTE para as
-         variantes debug e profile - a variante release continua exigindo HTTPS,
-         que e o que a secao 7 do .IA/CONTEXT.md pede em producao. -->
+    <!-- HTTP liberado so em debug/profile, para o backend local (10.0.2.2:3004) -->
     <application android:usesCleartextTraffic="true" />
 </manifest>

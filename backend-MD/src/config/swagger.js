@@ -19,7 +19,7 @@ const definition = {
       '',
       '### Consumidor',
       'O consumidor previsto é o **backend-Project**, nunca um front-end diretamente.',
-      'Toda requisição precisa da API Key de serviço (seção 11.1).',
+      'Toda requisição precisa da API Key de serviço.',
       '',
       '### Natureza do resultado',
       'A classificação é um resultado estatístico destinado a apoiar a decisão.',

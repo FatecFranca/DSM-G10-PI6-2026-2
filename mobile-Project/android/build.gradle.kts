@@ -15,15 +15,8 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
-// Alinha o compileSdk de TODOS os modulos (app + plugins) com o do Flutter.
-//
-// Sem isto, cada plugin compila contra a plataforma Android que ele declara, e o
-// build so passa se exatamente aquelas plataformas estiverem instaladas na
-// maquina - o que faz o projeto quebrar em um computador e funcionar em outro,
-// pelo mesmo commit. Fixando aqui, basta ter a plataforma do Flutter instalada.
-//
-// Precisa vir ANTES do evaluationDependsOn abaixo: aquele bloco ja avalia os
-// subprojetos, e afterEvaluate em projeto avaliado e erro de configuracao.
+
+// compileSdk 36 para app e plugins (tem que ficar antes do evaluationDependsOn)
 subprojects {
     afterEvaluate {
         val androidExtension = project.extensions.findByName("android")

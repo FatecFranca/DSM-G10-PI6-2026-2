@@ -2,9 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Em desenvolvimento a API principal roda em http://localhost:3004. O ATS
-	     bloqueia texto claro por padrao; NSAllowsLocalNetworking abre a excecao
-	     apenas para a rede local, sem liberar HTTP para a internet. -->
+	<!-- libera HTTP so na rede local (API em localhost no desenvolvimento) -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

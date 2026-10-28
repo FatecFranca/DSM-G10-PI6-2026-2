@@ -13,11 +13,7 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#070b15" />
 
-    <!--
-      Define data-theme ANTES da primeira pintura, para não haver flash do
-      tema errado (escuro é o padrão nativo — ver src/state/ThemeContext.tsx).
-      Precisa ser síncrono e no <head>, antes de qualquer CSS ser aplicado.
-    -->
+    <!-- aplica o tema antes de renderizar, para evitar flash -->
     <script>
       (function () {
         try {

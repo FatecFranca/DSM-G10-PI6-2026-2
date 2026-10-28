@@ -1,5 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- O aplicativo consome a API principal (backend-Project) por HTTP/JSON. -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application

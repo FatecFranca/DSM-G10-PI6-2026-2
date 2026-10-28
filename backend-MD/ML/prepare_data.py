@@ -173,7 +173,7 @@ def main() -> None:
     report["target_encoding"] = cfg.LABEL_MAP
     report["scaling"] = (
         "StandardScaler é ajustado na etapa 3 (train_model.py), somente sobre o "
-        "conjunto de treino, após o split — conforme item 7 da seção 6.1.2, para "
+        "conjunto de treino, após o split, para "
         "evitar data leakage. O dataset persistido aqui NÃO está escalado."
     )
     cfg.write_json(cfg.PREPARATION_REPORT, report)

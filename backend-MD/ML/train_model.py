@@ -93,12 +93,7 @@ def dropout_recall(y_true, y_pred) -> float:
 
 
 def calibration_error(y_true, y_pred, probabilities, bins: int = 10) -> tuple[float, float]:
-    """Distância entre a confiança anunciada e o acerto observado.
-
-    Retorna (ECE, MCE): o erro médio ponderado pelo tamanho de cada faixa e o erro da
-    pior faixa. Responde, em números, a pergunta "quando o modelo diz 70%, ele acerta
-    70% das vezes?" — que é o que o campo `confidence` promete a quem lê a tela.
-    """
+    """Retorna (ECE, MCE) da confiança do modelo."""
     confidence = probabilities.max(axis=1)
     hit = (np.asarray(y_pred) == np.asarray(y_true)).astype(float)
     edges = np.linspace(0.0, 1.0, bins + 1)
@@ -238,9 +233,7 @@ def select_final(evaluated: list[dict]) -> dict:
     best_score = ranked[0]["cv_selection_score"]
     tied = [e for e in ranked if best_score - e["cv_selection_score"] <= EQUIVALENCE_TOLERANCE]
 
-    # Entre os candidatos tratados como equivalentes, vence o mais estável: o de menor
-    # distância entre treino e validação. O score só volta como desempate se dois
-    # candidatos empatarem também em estabilidade.
+    # desempate: menor distância treino-validação
     winner = min(tied, key=lambda e: (e["overfit_gap"], -e["cv_selection_score"]))
 
     w = DROPOUT_RECALL_WEIGHT

@@ -232,8 +232,7 @@ deixar de sinalizar quem evade é o erro caro neste domínio.
 duas tarefas entre Classificação, Regressão, Regra de associação, Clustering e Recomendação
 — o projeto aplica uma. Um agrupamento por KMeans existiu até 03/09/2026 e foi removido:
 a base é rotulada e de classificação, e o agrupamento não se sustentava (silhueta 0,214,
-com 74,6% dos registros num único grupo). Histórico na seção 10 do
-[`backend-MD/.IA/CONTEXT.md`](backend-MD/.IA/CONTEXT.md).
+com 74,6% dos registros num único grupo).
 
 Detalhes de pipeline, reprodutibilidade e endpoints: [`backend-MD/README.md`](backend-MD/README.md).
 
@@ -248,7 +247,6 @@ Detalhes de pipeline, reprodutibilidade e endpoints: [`backend-MD/README.md`](ba
 | [`backend-MD/README.md`](backend-MD/README.md) | Pipeline de ML, dataset, seleção do modelo |
 | [`backend-Project/README.md`](backend-Project/README.md) | Papéis, modelo de dados, regra de prioridade |
 | [`frontend-Project/README.md`](frontend-Project/README.md) | Telas, apresentação dos dados de IA, i18n |
-| `*/.IA/CONTEXT.md` | Instruções de arquitetura por componente (não versionado) |
 
 ## Segurança
 
