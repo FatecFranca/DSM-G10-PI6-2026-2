@@ -12,9 +12,6 @@ inteligência analítica pertence ao `backend-MD`.
 
 React 19.2.8 · Vite 8.2.1 · TypeScript 7.0.2 · react-router-dom 7.18.2
 
-Os componentes visuais e os gráficos (rosca, barras, série temporal) são próprios, em CSS
-e SVG — veja `components/ui.tsx` e `components/charts.tsx`.
-
 ---
 
 ## Instalação
@@ -126,7 +123,7 @@ Back-End.
 
 ---
 
-## Como um resultado de IA aparece
+## Como um resultado de Aprendizado aparece:
 
 Cada resultado (`AnalysisResultView`) mostra:
 
@@ -138,7 +135,7 @@ Cada resultado (`AnalysisResultView`) mostra:
 - os atributos fora da faixa observada no treino, destacados no formulário e listados em
   `warnings`.
 
-## Formulário de atributos
+## Formulário de atributos:
 
 `FeaturesForm` é **gerado** a partir de `GET /api/students/feature-contract`, que repassa o
 contrato do `backend-MD`: nome, rótulo legível, tipo e faixa observada no treino. Se o
@@ -147,7 +144,7 @@ no código.
 
 ---
 
-## Estrutura
+## Estrutura:
 
 ```text
 frontend-Project/src/
@@ -179,13 +176,8 @@ atrasada sobrescreva a tela com dado obsoleto.
 
 ---
 
-## Idiomas
+## Idiomas:
 
 Português (BR), inglês (EUA) e espanhol (ES), em `src/locales`. O idioma é detectado do
-navegador, pode ser trocado no topo da tela e fica guardado. Chave sem tradução cai no
-pt-BR e avisa no console em desenvolvimento — nunca renderiza vazio.
-
-## Responsividade
-
-Desktop, notebook, tablet e telas menores. Até 1024px a barra lateral vira gaveta;
-tabelas largas rolam horizontalmente dentro do próprio container, sem estourar a página.
+navegador, pode ser trocado no topo da tela e fica armazenado no token. Chave sem tradução cai no
+pt-BR e avisa no console em desenvolvimento.

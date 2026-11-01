@@ -3,9 +3,6 @@
 Interface Mobile da plataforma **Predict Students' Dropout and Academic Success
 Classification** (PI do 6º semestre).
 
-Consome o **mesmo** `backend-Project` que a Web, com os mesmos contratos de API. Todos os
-dados, inclusive os resultados de IA, vêm de lá.
-
 ---
 
 ## Stack
@@ -103,12 +100,9 @@ fixado em `android/build.gradle.kts`. O Gradle roda com 2 GB de heap
 
 As rotas são as mesmas do `frontend-Project`.
 
-O menu e as ações se ajustam ao papel do usuário; a autorização em si é feita pelo
-Back-End.
-
 ---
 
-## Como um resultado de IA aparece
+## Como um resultado de aprendizado aparece:
 
 Cada resultado (`analysis_result_view.dart`) mostra, como na Web:
 
@@ -120,7 +114,7 @@ Cada resultado (`analysis_result_view.dart`) mostra, como na Web:
 - os atributos fora da faixa observada no treino, destacados no campo e listados nos
   avisos.
 
-## Formulário de atributos
+## Formulário de atributos:
 
 `FeaturesForm` é **gerado** a partir de `GET /api/students/feature-contract`, que repassa
 o contrato do `backend-MD`: nome, rótulo, tipo e faixa observada no treino. Se o modelo
@@ -133,7 +127,7 @@ que é a que vai para a análise.
 
 ---
 
-## Diferenças em relação à Web
+## Diferenças em relação à Web:
 
 O app usa os mesmos tokens de cor, raio, espaçamento e tipografia da Web, portados de
 `global.css` para `core/theme.dart`. A interação muda onde o celular pede:
@@ -152,7 +146,7 @@ O app usa os mesmos tokens de cor, raio, espaçamento e tipografia da Web, porta
 
 ---
 
-## Estrutura
+## Estrutura:
 
 ```text
 mobile-Project/

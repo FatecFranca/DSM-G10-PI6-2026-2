@@ -94,7 +94,7 @@ Login em `POST /api/auth/login` devolve um JWT, enviado depois em
 **Escopo por instituição:** usuários que não são ADMIN só alcançam dados da instituição a
 que estão vinculados (`middlewares/auth.js`).
 
-Desativar ou rebaixar um usuário tem efeito imediato, sem esperar o token expirar.
+Desativar ou rebaixar um usuário tem aplicação imediata.
 
 ---
 

@@ -39,8 +39,8 @@ Como cada exigência é atendida nesta solução:
 | Controle de versionamento | Git/GitHub, conforme exigido pelo manual como portfólio |
 | Mineração de Dados (disciplina satélite) | Pipeline completo em `backend-MD/ML` — preparação, comparação de treze algoritmos, seleção justificada e avaliação (classificação supervisionada) |
 
-**Problema real escolhido pelo grupo:** o manual permite que cada grupo escolha, em
-comum acordo, um problema alinhado a desafios reais da sociedade (seção 6 do manual).
+**Problema real escolhido pelo grupo:** o P.I permite que cada grupo escolha, em
+comum acordo, um problema alinhado a desafios reais da sociedade.
 A ambientação textual do produto é voltada ao cenário de Franca/SP — no mesmo espírito
 do trabalho articulado pelo **CMDCAF** (Conselho Municipal dos Direitos da Criança e do
 Adolescente de Franca), órgão deliberativo e de controle de políticas municipais de
@@ -91,7 +91,7 @@ problema de evasão e sucesso acadêmico tratado pelo dataset.
 **Regras de arquitetura que atravessam tudo:**
 
 - Nenhum cliente (Web, Mobile, Desktop) fala com o `backend-MD`. O `backend-Project` é o
-  gateway único, inclusive para resultados de IA.
+  gateway único, inclusive para resultados da classificação.
 - Nenhum Front-End acessa o MongoDB.
 - Os dois bancos vivem no mesmo cluster MongoDB, em **databases distintos**: dado de
   negócio (`Mongo-PI-Backend-Project`) separado de metadado técnico de ML
@@ -141,15 +141,11 @@ npm install    # cria .env (se faltar), sincroniza o banco e cria a instituiçã
 npm start      # :3004
 ```
 
-Para popular o painel com estudantes reais do dataset (requer o passo 1 já no ar):
+Para popular o painel com estudantes reais do dataset:
 
 ```bash
 npm run seed:students -- --count=90
 ```
-
-Abra uma **nova aba de terminal** antes do próximo passo — não reaproveite a mesma aba
-onde o `backend-MD` está rodando, senão você precisaria parar um serviço para iniciar
-o outro.
 
 ### 3. `frontend-Project` — Web
 
