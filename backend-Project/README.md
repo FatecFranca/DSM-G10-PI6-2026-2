@@ -1,237 +1,255 @@
-# backend-Project — API principal da plataforma
+# backend-Project
 
-Núcleo de negócio, API REST e orquestração da plataforma
-**Predict Students' Dropout and Academic Success Classification** (PI do 6º semestre).
+API REST principal do projeto Predict Students' Dropout and Academic Success Classification
+(PI 6º semestre).
 
-É a interface oficial de comunicação dos clientes **Web, Mobile e Desktop** com o
-Back-End, e o **gateway único** para dados e para resultados de IA: nenhum cliente fala
-com o `backend-MD` diretamente.
-
----
+Autenticação, usuários, instituições, estudantes, análises, acompanhamentos e indicadores.
+É o único back-end acessado pelos clientes Web e Mobile; as classificações são obtidas do
+`backend-MD`, por HTTP ou Kafka.
 
 ## Stack
 
 | Camada | Tecnologia |
 | --- | --- |
-| API | Node.js + Express 5.2.1 |
-| Banco | MongoDB via Prisma 6.19.3 (database `Mongo-PI-Backend-Project`) |
-| Autenticação | JWT (`jsonwebtoken`) + hash de senha com bcryptjs |
-| Documentação | swagger-jsdoc + swagger-ui-express |
-
----
+| API | Node.js, Express 5.2.1 |
+| Banco | MongoDB, Prisma 6.19.3 (database `Mongo-PI-Backend-Project`) |
+| Autenticação | jsonwebtoken 9.0.3, bcryptjs 3.0.3 |
+| E-mail | nodemailer (SMTP) |
+| Mensageria | Kafka (Aiven) via API REST v2 |
+| Documentação | swagger-jsdoc 6.3.0, swagger-ui-express 5.0.1 |
 
 ## Instalação
 
+Requisitos: Node.js, acesso ao cluster MongoDB e `backend-MD` em execução.
+
 ```bash
 npm install
-npm start
 ```
 
-> `npm start` roda em primeiro plano (`node src/server.js`, sem daemon). Use uma aba de
-> terminal dedicada a este serviço — `Ctrl+C` nela para só o `backend-Project`, sem afetar
-> o `backend-MD` nem o Front-End, desde que cada um rode na sua própria aba.
+O `postinstall` executa `prisma generate` e `src/scripts/setup.js`, que é idempotente:
 
-`npm install` faz **tudo sozinho** (hook `postinstall` → `src/scripts/setup.js`), de forma
-idempotente:
+1. cria `.env` a partir de `.env.example`, se não existir;
+2. executa `prisma db push`;
+3. cria a instituição e os usuários de demonstração, se não existirem (não executa com
+   `NODE_ENV=production`).
 
-1. cria o `.env` a partir de `.env.example`, se ainda não existir;
-2. sincroniza o schema com o MongoDB (`prisma db push`);
-3. cria a instituição e os usuários de demonstração, se ainda não existirem (pulado
-   automaticamente quando `NODE_ENV=production`, porque usam senhas padrão).
+Falhas geram aviso e não interrompem o `npm install`. Após preencher o `.env`, executar
+`npm run setup`.
 
-Nenhum passo interrompe o `npm install` se falhar (banco fora do ar): o script avisa e
-segue, e `npm start` reporta o mesmo problema com mais detalhe.
-
-**Só é necessário editar algo manualmente** se o `.env` acabou de ser criado a partir do
-exemplo: preencha `DB_URL`, gere `JWT_SECRET` e `MD_API_KEY`:
+Geração de `JWT_SECRET`:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"   # JWT_SECRET
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
 
-`MD_API_KEY` deve ser **idêntico** ao configurado no `backend-MD` — é o segredo
-compartilhado entre os dois serviços. Depois, rode `npm install` de novo (ou
-`npm run setup`) para o script terminar o provisionamento.
+### Variáveis de ambiente
 
-- API: `http://localhost:3004`
-- Documentação: `http://localhost:3004/api/docs`
-- Saúde: `http://localhost:3004/api/health`
+| Variável | Padrão | Uso |
+| --- | --- | --- |
+| `PORT` | `3004` | Porta HTTP |
+| `NODE_ENV` | `development` | Em `production`, variável obrigatória ausente impede a subida |
+| `DB_URL` | | String de conexão MongoDB (obrigatória) |
+| `JWT_SECRET` | | Chave de assinatura do JWT (obrigatória) |
+| `AUTH_EXPIRES` | `1d` | Validade do JWT |
+| `BCRYPT_ROUNDS` | `10` | Custo do hash de senha |
+| `MD_API_BASE_URL` | `http://localhost:3003/api/` | URL do `backend-MD` |
+| `MD_API_KEY` | | Mesmo valor do `backend-MD` (obrigatória) |
+| `MD_TIMEOUT_MS` | `40000` | Timeout das chamadas ao `backend-MD` |
+| `CORS_ORIGINS` | `http://localhost:5173` | Origens permitidas, separadas por vírgula |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | porta `587` | Envio do e-mail de recuperação de senha |
+| `FRONTEND_URL` | `http://localhost:5173` | Base do link de redefinição de senha |
+| `KAFKA_ENABLED` | `false` | Liga o lote de análise via Kafka |
+| `KAFKA_REST_URL`, `KAFKA_REST_USERNAME`, `KAFKA_REST_PASSWORD` | | Acesso à API REST do Kafka |
+| `KAFKA_TOPIC_ANALYSIS_REQUESTED`, `KAFKA_TOPIC_ANALYSIS_COMPLETED` | | Tópicos |
+| `KAFKA_CONSUMER_GROUP` | | Grupo de consumo (`backend-project`) |
 
-### Dados de demonstração
+Com `KAFKA_ENABLED=true`, todas as variáveis `KAFKA_*` passam a ser obrigatórias.
 
-`npm install` já cria a instituição e os três usuários (um por papel). Para popular o
-painel com estudantes reais do dataset (requer o `backend-MD` no ar — o contrato de
-atributos vem de lá, e as colunas do CSV são mapeadas por posição contra esse contrato):
+### Scripts
 
-```bash
-npm run seed:students -- --count=90
-```
+| Comando | Ação |
+| --- | --- |
+| `npm start` | `node src/server.js` |
+| `npm run start:prod` | Igual ao anterior, com `NODE_ENV=production` |
+| `npm run dev` | nodemon |
+| `npm run setup` | Reexecuta `src/scripts/setup.js` |
+| `npm run prisma:push` | Sincroniza o schema (necessário após alterar `schema.prisma`) |
+| `npm run seed` | Instituição e usuários de demonstração |
+| `npm run seed:students -- --count=90` | Estudantes a partir do CSV do dataset (requer `backend-MD` ativo) |
 
-Depois, analise o lote via `POST /api/analyses/batch` para os indicadores aparecerem no
-painel.
+| Recurso | URL local |
+| --- | --- |
+| API | `http://localhost:3004/api` |
+| Swagger | `http://localhost:3004/api/docs` |
+| Health check | `http://localhost:3004/api/health` |
 
-Usuários criados pelo seed (apenas desenvolvimento — o script recusa rodar em produção):
+### Usuários de demonstração
+
+Criados apenas fora de produção.
 
 | E-mail | Senha | Papel |
 | --- | --- | --- |
-| `admin@pi6.local` | `Admin@123456` | ADMIN |
-| `analista@pi6.local` | `Analista@123456` | ANALYST |
-| `consulta@pi6.local` | `Consulta@123456` | VIEWER |
+| `admin@pi6.local` | `Admin@123456` | `ADMIN` |
+| `analista@pi6.local` | `Analista@123456` | `ANALYST` |
+| `consulta@pi6.local` | `Consulta@123456` | `VIEWER` |
 
----
+## Autenticação
 
-## Autenticação e papéis
+`POST /api/auth/login` retorna um JWT, enviado nas demais requisições em
+`Authorization: Bearer <token>`. O usuário é consultado no banco a cada requisição, então
+desativação e troca de papel têm efeito imediato.
 
-Login em `POST /api/auth/login` devolve um JWT, enviado depois em
-`Authorization: Bearer <token>`.
-
-| Papel | Pode |
+| Papel | Permissões |
 | --- | --- |
-| `ADMIN` | Tudo, em todas as instituições; administra usuários e instituições |
-| `ANALYST` | Cadastrar estudantes, executar análises e conduzir acompanhamentos na própria instituição |
-| `VIEWER` | Somente leitura no escopo da própria instituição |
+| `ADMIN` | Todas as instituições; usuários, instituições e Mineração de Dados |
+| `ANALYST` | Estudantes, análises e acompanhamentos da própria instituição |
+| `VIEWER` | Leitura na própria instituição |
 
-**Escopo por instituição:** usuários que não são ADMIN só alcançam dados da instituição a
-que estão vinculados (`middlewares/auth.js`).
+Usuários não ADMIN ficam restritos à instituição vinculada (`src/middlewares/auth.js`).
 
-Desativar ou rebaixar um usuário tem aplicação imediata.
+### Recuperação de senha
 
----
+1. `POST /api/auth/forgot-password { email }` responde sempre com a mesma mensagem.
+2. Para contas `VIEWER` ativas, gera um token de 32 bytes, grava o hash SHA-256 em
+   `users.passwordResetTokenHash` e envia `FRONTEND_URL/reset-password?token=...` por SMTP.
+3. `POST /api/auth/reset-password { token, newPassword }` aceita o token uma única vez, em
+   até 30 minutos.
+
+Sem SMTP configurado, a solicitação é registrada no log e nenhum e-mail é enviado.
+Senhas de `ADMIN` e `ANALYST` são redefinidas por um administrador em
+`POST /api/users/{id}/password`.
 
 ## Integração com o backend-MD
 
-```text
-cliente → backend-Project (valida, aplica regra de negócio)
-        → backend-MD (classifica)
-        → backend-Project (deriva prioridade, grava histórico)
-        → cliente
-```
+`src/services/mdClient.js` é o único módulo que chama o `backend-MD`. Envia
+`X-API-Key: <MD_API_KEY>` e não repassa o JWT do usuário.
 
-A chamada ao `backend-MD` é autenticada por **API Key** no header `X-API-Key`
-(`MD_API_KEY`, mesmo valor nos dois serviços).
-
-`src/services/mdClient.js` é o único módulo que chama o `backend-MD` e traduz as falhas
-dele: atributo inválido continua `422`; API Key recusada vira `502`
-(`ML_SERVICE_UNAUTHORIZED`).
-
-**Prioridade de acompanhamento** (`src/modules/analyses/priority.js`): a partir da classe
-e da confiança devolvidas pelo `backend-MD`, este serviço define a prioridade.
-
-| Resultado | Prioridade | Leitura |
-| --- | --- | --- |
-| `Dropout`, confiança ≥ 0,6 | HIGH | Acompanhamento prioritário |
-| `Dropout`, confiança < 0,6 | MEDIUM | Acompanhamento recomendado |
-| `Enrolled` | MEDIUM | Observação continuada (desfecho em aberto) |
-| `Graduate`, confiança ≥ 0,6 | LOW | Sem indicativo de prioridade |
-| `Graduate`, confiança < 0,6 | MEDIUM | Observação continuada |
-
-### Lote de análise via mensageria (Kafka REST, Aiven)
-
-Com `KAFKA_ENABLED=true`, `POST /api/analyses/batch` deixa de chamar o `backend-MD` por
-HTTP e passa a conversar com ele pelo Kafka:
-
-```text
-POST /analyses/batch → AnalysisJob QUEUED → 202 { id, status }
-                     → publica pae.analysis.requested { jobId, records }
-backend-MD classifica → publica pae.analysis.completed { jobId, status, model, results }
-consumidor deste serviço → grava Analysis (com jobId) + atualiza Student → job DONE/FAILED
-cliente → GET /analyses/jobs/{id} até DONE ou FAILED
-```
-
-| Arquivo | Papel |
+| Resposta do `backend-MD` | Resposta deste serviço |
 | --- | --- |
-| `src/lib/kafkaRest.js` | Cliente da API REST v2 do Kafka (produzir, consumir, confirmar offset). Idêntico ao do `backend-MD` |
-| `src/lib/messaging.js` | Liga/desliga pela configuração e instancia o cliente com as variáveis `KAFKA_*` |
-| `src/modules/analyses/analysisJobs.js` | Enfileira o lote, consulta o job e consome o resultado |
+| `422` (atributos inválidos) | `422` |
+| `401`/`403` (API Key recusada) | `502 ML_SERVICE_UNAUTHORIZED` |
+| Sem resposta | `503 ML_SERVICE_UNREACHABLE` |
+| Timeout (`MD_TIMEOUT_MS`) | `504 ML_SERVICE_TIMEOUT` |
+| `MD_API_KEY` vazia | `503 ML_SERVICE_NOT_CONFIGURED` (sem chamada) |
 
-- O pedido publicado leva **só os atributos**; a correlação com o estudante volta pelo
-  índice do registro, contra os `items` guardados no `AnalysisJob`.
-- Entrega **pelo menos uma vez**: o consumidor é idempotente (ignora job já concluído e
-  não regrava estudante que já tem análise daquele job).
-- Se o Kafka estiver fora na hora do pedido, o job vira `FAILED` e a resposta é
-  `503 MESSAGING_UNAVAILABLE` — nada fica "enfileirado" sem ter sido publicado.
-- Se o `backend-MD` estiver fora, o pedido fica retido no tópico e é processado quando
-  ele voltar; o job permanece `QUEUED` até lá.
-- `KAFKA_ENABLED=false` (ou ausente) mantém o comportamento síncrono anterior (`200` com
-  os resultados).
+### Prioridade de acompanhamento
 
-Os tópicos `pae.analysis.requested` e `pae.analysis.completed` precisam existir no Aiven
-(a API REST não cria tópicos). Depois de mudar o `schema.prisma`, rode
-`npm run prisma:push` para criar a coleção `analysis_jobs` e os índices.
+Calculada em `src/modules/analyses/priority.js` a partir da classe e da confiança.
 
----
+| Classe | Confiança | Prioridade | Texto |
+| --- | --- | --- | --- |
+| `Dropout` | ≥ 0,6 | `HIGH` | Acompanhamento prioritário |
+| `Dropout` | < 0,6 | `MEDIUM` | Acompanhamento recomendado |
+| `Enrolled` | qualquer | `MEDIUM` | Observação continuada (desfecho em aberto) |
+| `Graduate` | ≥ 0,6 | `LOW` | Sem indicativo de prioridade |
+| `Graduate` | < 0,6 | `MEDIUM` | Observação continuada |
+
+### Lote de análise
+
+`POST /api/analyses/batch` aceita até 200 estudantes.
+
+`KAFKA_ENABLED=false`: chamada HTTP a `POST /classify/batch` do `backend-MD`, resposta
+`200` com os resultados.
+
+`KAFKA_ENABLED=true`:
+
+```text
+POST /api/analyses/batch
+  -> cria AnalysisJob (QUEUED), responde 202 { id, status }
+  -> publica pae.analysis.requested { jobId, records }
+backend-MD
+  -> publica pae.analysis.completed { jobId, status, model, results | error }
+consumidor (grupo backend-project)
+  -> grava Analysis com jobId, atualiza Student, job DONE ou FAILED
+cliente
+  -> GET /api/analyses/jobs/{id} até DONE ou FAILED
+```
+
+- `records` contém só atributos. Os itens (`studentId`, `institutionId`, `features`) ficam
+  no `AnalysisJob` e são associados pelo índice.
+- O consumidor ignora jobs que não estão em `QUEUED` e não grava duas análises com o mesmo
+  `jobId` para o mesmo estudante.
+- Falha ao publicar: job `FAILED` e resposta `503 MESSAGING_UNAVAILABLE`.
+- Com o `backend-MD` parado, o pedido permanece no tópico (retenção de 72 h) e o job em
+  `QUEUED`.
+- Os tópicos são criados no console do Aiven.
+
+| Arquivo | Função |
+| --- | --- |
+| `src/lib/kafkaRest.js` | Cliente da API REST v2 (mesmo arquivo do `backend-MD`) |
+| `src/lib/messaging.js` | Inicialização a partir das variáveis `KAFKA_*` |
+| `src/modules/analyses/analysisJobs.js` | Publicação do lote, consulta do job, consumidor |
 
 ## Endpoints
 
-| Método | Rota | Papel | Descrição |
+| Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
-| `GET` | `/api/health` | público | Estado da API, banco e serviço de IA |
-| `POST` | `/api/auth/login` | público | Autentica e devolve JWT |
-| `GET` | `/api/auth/me` | todos | Perfil do usuário autenticado |
-| `POST` | `/api/auth/change-password` | todos | Troca a própria senha |
-| `GET` | `/api/students` | todos | Lista estudantes (escopo por instituição) |
-| `GET` | `/api/students/feature-contract` | todos | Contrato de atributos do modelo |
-| `GET` | `/api/students/{id}` | todos | Detalhe + histórico + acompanhamentos |
-| `POST` | `/api/students` | ADMIN, ANALYST | Cadastra estudante |
-| `PATCH` | `/api/students/{id}` | ADMIN, ANALYST | Atualiza (atributos são mesclados) |
-| `DELETE` | `/api/students/{id}` | ADMIN, ANALYST | Desativa |
-| `GET` | `/api/analyses` | todos | Histórico de análises, com filtros |
-| `GET` | `/api/analyses/{id}` | todos | Detalhe + cópia dos atributos usados |
-| `POST` | `/api/analyses/student/{id}` | ADMIN, ANALYST | Analisa e grava histórico |
-| `POST` | `/api/analyses/batch` | ADMIN, ANALYST | Analisa até 200 estudantes (`202` + job com mensageria ativa) |
-| `GET` | `/api/analyses/jobs/{id}` | quem pediu, ADMIN | Andamento do lote enfileirado |
-| `POST` | `/api/analyses/simulate` | ADMIN, ANALYST | Classifica sem persistir |
-| `GET` | `/api/follow-ups` | todos | Fila de acompanhamentos |
-| `POST` | `/api/follow-ups` | ADMIN, ANALYST | Abre acompanhamento |
-| `PATCH` | `/api/follow-ups/{id}` | ADMIN, ANALYST | Atualiza situação |
-| `GET` | `/api/dashboard` | todos | Indicadores consolidados |
-| `GET` | `/api/dashboard/timeline` | todos | Série temporal por classe |
-| `GET` | `/api/dashboard/institutions` | ADMIN | Comparativo entre instituições |
-| `GET` | `/api/datamining/model` | todos | Modelo em uso e seu processo |
-| `GET` `POST` `PATCH` `DELETE` | `/api/users` | ADMIN | Administração de usuários |
-| `GET` `POST` `PATCH` `DELETE` | `/api/institutions` | ADMIN (escrita) | Administração de instituições |
+| `GET` | `/api/health` | público | Estado da API, banco e `backend-MD` |
+| `POST` | `/api/auth/login` | público | Retorna JWT |
+| `POST` | `/api/auth/forgot-password` | público | Solicita link de redefinição |
+| `POST` | `/api/auth/reset-password` | público | Redefine a senha com o token |
+| `GET` | `/api/auth/me` | autenticado | Usuário atual |
+| `POST` | `/api/auth/change-password` | autenticado | Troca a própria senha |
+| `GET` | `/api/students` | autenticado | Lista, com filtros e paginação |
+| `GET` | `/api/students/feature-contract` | autenticado | Contrato de atributos do modelo |
+| `GET` | `/api/students/{id}` | autenticado | Detalhe, histórico e acompanhamentos |
+| `POST` | `/api/students` | ADMIN, ANALYST | Cadastro |
+| `PATCH` | `/api/students/{id}` | ADMIN, ANALYST | Atualização; `features` é mesclado |
+| `DELETE` | `/api/students/{id}` | ADMIN, ANALYST | Desativação |
+| `GET` | `/api/analyses` | autenticado | Histórico, com filtros |
+| `GET` | `/api/analyses/{id}` | autenticado | Detalhe e `featuresSnapshot` |
+| `POST` | `/api/analyses/student/{id}` | ADMIN, ANALYST | Analisa e grava |
+| `POST` | `/api/analyses/batch` | ADMIN, ANALYST | Lote (`200` ou `202`) |
+| `GET` | `/api/analyses/jobs/{id}` | solicitante, ADMIN | Situação do lote |
+| `POST` | `/api/analyses/simulate` | ADMIN, ANALYST | Classifica sem gravar |
+| `GET` | `/api/follow-ups` | autenticado | Lista |
+| `GET` | `/api/follow-ups/{id}` | autenticado | Detalhe |
+| `POST` | `/api/follow-ups` | ADMIN, ANALYST | Abertura |
+| `PATCH` | `/api/follow-ups/{id}` | ADMIN, ANALYST | Atualização |
+| `GET` | `/api/dashboard` | autenticado | Indicadores |
+| `GET` | `/api/dashboard/timeline` | autenticado | Série temporal por classe |
+| `GET` | `/api/dashboard/institutions` | ADMIN | Comparativo por instituição |
+| `GET` | `/api/datamining/model` | ADMIN | Metadados do modelo (repassados do `backend-MD`) |
+| `GET` | `/api/users`, `/api/users/{id}` | ADMIN | Consulta |
+| `POST` | `/api/users` | ADMIN | Cadastro |
+| `PATCH` | `/api/users/{id}` | ADMIN | Atualização |
+| `POST` | `/api/users/{id}/password` | ADMIN | Redefine a senha |
+| `DELETE` | `/api/users/{id}` | ADMIN | Desativação |
+| `GET` | `/api/institutions`, `/api/institutions/{id}` | autenticado | Consulta |
+| `POST` | `/api/institutions` | ADMIN | Cadastro |
+| `PATCH` | `/api/institutions/{id}` | ADMIN | Atualização |
+| `DELETE` | `/api/institutions/{id}` | ADMIN | Desativação |
 
 ### Erros
 
-Formato único: `{ "error": "<CODE>", "message": "...", "details": ... }`
+Formato: `{ "error": "<CODIGO>", "message": "...", "details": ... }`
 
-| Código | HTTP | Significado |
-| --- | --- | --- |
-| `INVALID_CREDENTIALS` | 401 | E-mail ou senha inválidos |
-| `TOKEN_EXPIRED` / `TOKEN_INVALID` | 401 | Sessão inválida |
-| `INSUFFICIENT_ROLE` | 403 | Papel sem permissão |
-| `INSTITUTION_MISMATCH` | 403 | Registro de outra instituição |
-| `VALIDATION_ERROR` | 422 | Campos inválidos (com `details` por campo) |
-| `INCOMPLETE_STUDENT_FEATURES` | 422 | Faltam atributos para analisar |
-| `STUDENT_CODE_IN_USE` | 409 | Código repetido na instituição |
-| `MODEL_NOT_TRAINED` | 503 | Serviço de IA sem modelo |
-| `ML_SERVICE_UNREACHABLE` | 503 | Serviço de IA fora |
-| `ML_SERVICE_TIMEOUT` | 504 | Serviço de IA demorou demais |
-| `MESSAGING_UNAVAILABLE` | 503 | Kafka indisponível — o lote não foi enfileirado |
-| `ANALYSIS_JOB_NOT_FOUND` | 404 | Job inexistente ou de outro usuário |
-
----
+| HTTP | Códigos |
+| --- | --- |
+| 400 | `INVALID_JSON`, `INVALID_BODY`, `INVALID_ID`, `RESET_TOKEN_INVALID`, `PASSWORD_NOT_CHANGED`, `CANNOT_DEACTIVATE_SELF`, `CANNOT_CHANGE_OWN_ROLE`, `STUDENT_INACTIVE` |
+| 401 | `INVALID_CREDENTIALS`, `TOKEN_MISSING`, `TOKEN_INVALID`, `TOKEN_EXPIRED` |
+| 403 | `INSUFFICIENT_ROLE`, `INSTITUTION_MISMATCH`, `NO_INSTITUTION_SCOPE`, `USER_INACTIVE` |
+| 404 | `ROUTE_NOT_FOUND`, `USER_NOT_FOUND`, `INSTITUTION_NOT_FOUND`, `STUDENT_NOT_FOUND`, `ANALYSIS_NOT_FOUND`, `ANALYSIS_JOB_NOT_FOUND`, `FOLLOWUP_NOT_FOUND` |
+| 409 | `EMAIL_ALREADY_USED`, `INSTITUTION_NAME_IN_USE`, `STUDENT_CODE_IN_USE`, `DUPLICATE_VALUE`, `RELATION_CONSTRAINT` |
+| 422 | `VALIDATION_ERROR`, `INCOMPLETE_STUDENT_FEATURES`, `INVALID_STUDENT_FEATURES`, `NO_ELIGIBLE_STUDENTS` |
+| 502 | `ML_SERVICE_ERROR`, `ML_SERVICE_UNAUTHORIZED`, `ML_INVALID_RESPONSE` |
+| 503 | `ML_SERVICE_NOT_CONFIGURED`, `ML_SERVICE_UNREACHABLE`, `MODEL_NOT_TRAINED`, `MESSAGING_UNAVAILABLE` |
+| 504 | `ML_SERVICE_TIMEOUT` |
 
 ## Modelo de dados
 
-| Coleção | Papel |
+| Coleção | Conteúdo |
 | --- | --- |
-| `users` | Contas de acesso, papel e vínculo com instituição |
-| `institutions` | Entidades atendidas; delimitam escopo de acesso |
-| `students` | Cadastro + atributos acadêmicos/socioeconômicos + resumo da última análise |
-| `analyses` | Histórico de análises: qual estudante, quando, qual resultado, qual versão do modelo (`modelVersion`, `algorithm`) |
-| `analysis_jobs` | Lotes enviados pela mensageria: situação (`QUEUED`/`DONE`/`FAILED`), itens e contagens |
-| `follow_ups` | Ações tomadas a partir das análises |
+| `users` | Nome, e-mail, hash da senha, papel (`ADMIN`, `ANALYST`, `VIEWER`), instituição, token de redefinição |
+| `institutions` | Instituições atendidas |
+| `students` | Cadastro, 36 atributos e resumo da última análise (`lastClassification`, `lastPriority`, ...) |
+| `analyses` | Uma entrada por execução: classe, confiança, probabilidades, prioridade, `modelVersion`, `algorithm`, `featuresSnapshot`, `jobId` |
+| `analysis_jobs` | Lotes via Kafka: `QUEUED`, `DONE` ou `FAILED`, itens e contagens |
+| `follow_ups` | Acompanhamentos: `OPEN`, `IN_PROGRESS`, `DONE` ou `CANCELLED` |
 
-- Cada análise gera um novo registro em `analyses`, com cópia dos atributos usados
-  (`featuresSnapshot`); registros anteriores não são alterados.
-- O estudante guarda um resumo da última análise (`lastClassification`, `lastPriority`, …),
-  gravado na mesma transação da análise.
-- `DELETE` em usuários, instituições e estudantes **desativa** o registro, sem excluí-lo.
-- Os metadados técnicos do modelo (hiperparâmetros, métricas, dataset) ficam no
-  `backend-MD`; este serviço os repassa em `GET /api/datamining/model`.
-
----
+- Análises não são alteradas após a gravação.
+- A análise e o resumo no estudante são gravados na mesma transação.
+- `DELETE` em usuários, instituições e estudantes define `active = false`.
 
 ## Estrutura
 
@@ -239,28 +257,24 @@ Formato único: `{ "error": "<CODE>", "message": "...", "details": ... }`
 backend-Project/
 ├── prisma/schema.prisma
 └── src/
-    ├── config/                  env, swagger
-    ├── lib/
-    │   ├── prisma.js            único acesso ao MongoDB
-    │   ├── kafkaRest.js         cliente da API REST do Kafka (Aiven)
-    │   └── messaging.js         liga/desliga a mensageria pelo .env
-    ├── middlewares/             auth (JWT + papéis + escopo), errorHandler
+    ├── config/                   env, swagger
+    ├── lib/                      prisma, mailer, kafkaRest, messaging
+    ├── middlewares/              auth (JWT, papéis, escopo), errorHandler
     ├── services/
-    │   ├── mdClient.js          único lugar que conhece o backend-MD
-    │   └── featureContract.js   contrato de atributos, em cache
+    │   ├── mdClient.js           cliente do backend-MD
+    │   └── featureContract.js    contrato de atributos em cache
     ├── modules/
-    │   ├── auth/                login, perfil, senha
-    │   ├── users/               administração de usuários
-    │   ├── institutions/        administração de instituições
-    │   ├── students/            cadastro e consulta
-    │   ├── analyses/            orquestração com o serviço de IA + priority.js
-    │   │                        + analysisJobs.js (lote via Kafka)
-    │   ├── followups/           acompanhamento
-    │   ├── dashboard/           indicadores e séries
-    │   ├── datamining/          repasse dos resultados analíticos
+    │   ├── auth/
+    │   ├── users/
+    │   ├── institutions/
+    │   ├── students/
+    │   ├── analyses/             rotas, priority.js, analysisJobs.js
+    │   ├── followups/
+    │   ├── dashboard/
+    │   ├── datamining/
     │   └── health/
-    ├── utils/                   AppError, validate (validação sem lib extra)
-    ├── scripts/                 seed, seedStudents
+    ├── utils/                    AppError, validate
+    ├── scripts/                  setup, seed, seedStudents
     ├── app.js
     └── server.js
 ```

@@ -1,181 +1,172 @@
-# mobile-Project — Aplicativo Flutter
+# mobile-Project
 
-Interface Mobile da plataforma **Predict Students' Dropout and Academic Success
-Classification** (PI do 6º semestre).
-
----
+Aplicativo Flutter do projeto Predict Students' Dropout and Academic Success Classification
+(PI 6º semestre).
 
 ## Stack
 
-| Camada | Tecnologia |
+| Item | Pacote / versão |
 | --- | --- |
-| Framework | Flutter 3.41.5 · Dart 3.11.3 |
-| Estado | `provider` |
-| Navegação | `go_router` (mesmas rotas da Web) |
-| Rede | `http`, centralizado em `core/api_client.dart` |
-| Sessão | `flutter_secure_storage` (Keystore/Keychain) |
-| Tema e idioma | `shared_preferences` |
-| Formatação | `intl` |
-| Gráficos | `CustomPainter` próprio |
+| Framework | Flutter 3.41.5, Dart 3.11.3 |
+| Estado | `provider` 6 |
+| Navegação | `go_router` 17 |
+| HTTP | `http` 1 |
+| Token JWT | `flutter_secure_storage` 9 (Keystore / Keychain) |
+| Tema e idioma | `shared_preferences` 2 |
+| Formatação e i18n | `intl`, `flutter_localizations` |
+| Gráficos | `CustomPainter` |
+| Ícones | Material Icons |
 
----
+Application ID: `academico.pi6.pae_mobile`. Plataformas: Android, iOS e Windows.
 
-## Executar
-
-Pré-requisitos: Flutter 3.41.5+, e o `backend-Project` (:3004) e o `backend-MD` (:3003)
-no ar — o app não funciona sozinho, como nenhum dos clientes.
+## Execução
 
 ```bash
-cd mobile-Project
 flutter pub get
 flutter run
 ```
 
-### Para onde o app aponta
+### URL da API
 
-O app usa o `backend-Project` publicado na VM:
-`https://pae-pi6.canadacentral.cloudapp.azure.com/api`, definido em
-`lib/core/config.dart` (`AppConfig.apiBaseUrl`).
+`AppConfig.apiBaseUrl` em `lib/core/config.dart`, constante usada em todas as plataformas e
+variantes:
 
-Para usar um back-end local, troque esse valor. `localhost` significa coisas diferentes
-em cada lugar, e é aqui que a maioria dos "não conecta" acontece:
+```text
+https://pae-pi6.canadacentral.cloudapp.azure.com/api
+```
 
-| Onde o app roda | Endereço do `backend-Project` local |
+Para usar um `backend-Project` local, alterar a constante:
+
+| Onde o app roda | Endereço |
 | --- | --- |
 | Emulador Android | `http://10.0.2.2:3004/api` |
-| Simulador iOS / desktop | `http://localhost:3004/api` |
-| Celular físico no Wi-Fi | `http://<IP da máquina>:3004/api` (`ipconfig` no Windows) | O `CORS_ORIGINS` do back-end não interfere aqui: CORS é regra de navegador, e o
-app não é um.
+| Simulador iOS / Windows | `http://localhost:3004/api` |
+| Dispositivo físico na mesma rede | `http://<IP da máquina>:3004/api` |
 
-Entre com um dos usuários criados pelo seed do `backend-Project` — por exemplo
-`admin@pi6.local` / `Admin@123456`.
+### HTTP sem TLS
 
-### HTTP em texto claro só em desenvolvimento
+| Plataforma | Configuração | Variantes |
+| --- | --- | --- |
+| Android | `android:usesCleartextTraffic="true"` em `android/app/src/{debug,profile}/AndroidManifest.xml` | `debug`, `profile` |
+| iOS | `NSAllowsLocalNetworking` em `ios/Runner/Info.plist` | todas (somente rede local) |
 
-O Android 9+ e o iOS bloqueiam HTTP sem TLS por padrão. Para o ambiente local em
-`http://`, a exceção está habilitada **apenas** nas variantes de desenvolvimento:
-
-- Android: `usesCleartextTraffic` nos manifestos `debug` e `profile`. A variante
-  `release` exige HTTPS.
-- iOS: `NSAllowsLocalNetworking`, que libera a rede local sem liberar HTTP para a
-  internet.
-
-O endereço da VM é HTTPS, então funciona também na variante `release`.
+A variante `release` do Android aceita apenas HTTPS.
 
 ### Verificação
 
 ```bash
-flutter analyze     # sem apontamentos
-flutter test        # 27 testes de unidade
+flutter analyze
+flutter test
 ```
 
-Os testes cobrem a leitura dos contratos da API (incluindo campo ausente e confiança
-nula), as regras do formulário de atributos (médias, limites rígidos, descarte de
-vazios), a regra de "acompanhamento vencido" e o i18n — inclusive um teste que verifica
-que **todo** valor de enum do contrato tem tradução nos três idiomas.
+| Arquivo | Cobertura |
+| --- | --- |
+| `models_test.dart` | Desserialização dos contratos, campos ausentes, enums desconhecidos |
+| `features_form_test.dart` | Valores iniciais, preenchimento por média, limites, descarte de vazios |
+| `i18n_test.dart` | Carga dos três idiomas, chaves pontuadas, interpolação, tradução de todos os enums |
+| `app_card_test.dart` | Card comum e expansível, ícone de informação |
+| `app_tabs_test.dart` | Abas com ícone de informação |
+| `stat_card_test.dart` | Card de estatística, tons, texto longo |
+| `confusion_matrix_test.dart` | Matriz de confusão sem rolagem em larguras e escalas de fonte diferentes |
+| `ui_dropdown_test.dart` | Valor inicial, troca por código, valor fora da lista |
+| `brand_test.dart` | Logos presentes no bundle |
 
 ### Build Android
 
-O build usa o Android SDK 36: o `compileSdk` de todos os módulos (app e plugins) está
-fixado em `android/build.gradle.kts`. O Gradle roda com 2 GB de heap
-(`android/gradle.properties`).
+```bash
+flutter build apk --release
+```
 
----
+- `android/build.gradle.kts` fixa `compileSdk = 36` para o app e todos os plugins.
+- `android/gradle.properties`: `-Xmx2G`.
+
+Ícone e splash: `dart run flutter_launcher_icons` e `dart run flutter_native_splash:create`,
+a partir de `branding/`.
 
 ## Telas
 
-| Rota | Tela | Acesso |
+| Rota | Conteúdo | Acesso |
 | --- | --- | --- |
-| `/login` | Acesso | público |
-| `/forgot-password`, `/reset-password` | Recuperação de senha | público |
-| `/` | Painel: indicadores, distribuições, evolução, fila de atenção | todos |
-| `/students` | Lista com busca, filtros, ordenação e análise em lote | todos |
-| `/students/new`, `/students/:id/edit` | Cadastro/edição + atributos | ADMIN, ANALYST |
-| `/students/:id` | Detalhe: situação, histórico, acompanhamentos, atributos | todos |
-| `/analysis` | Simular análise · Histórico | todos (simular: ADMIN, ANALYST) |
-| `/data-mining` | Processo de construção do modelo | todos |
-| `/follow-ups` | Fila de acompanhamentos | todos (escrita: ADMIN, ANALYST) |
-| `/profile` | Perfil, troca da própria senha, sair | todos |
+| `/login` | Login | público |
+| `/forgot-password` | Solicitação de redefinição de senha | público |
+| `/reset-password?token=` | Nova senha | público |
+| `/` | Indicadores, distribuições, evolução, fila de atenção | autenticado |
+| `/students` | Lista com busca, filtros, ordenação e análise em lote | autenticado |
+| `/students/new`, `/students/:id/edit` | Cadastro e edição com atributos | ADMIN, ANALYST |
+| `/students/:id` | Situação, histórico, acompanhamentos, atributos | autenticado |
+| `/analysis` | Simulação (ADMIN, ANALYST) e histórico | autenticado |
+| `/data-mining` | Processo de construção e métricas do modelo | ADMIN |
+| `/follow-ups` | Acompanhamentos (escrita: ADMIN, ANALYST) | autenticado |
+| `/profile` | Dados do usuário, troca de senha, logout | autenticado |
 | `/admin/users`, `/admin/institutions` | Administração | ADMIN |
 
-As rotas são as mesmas do `frontend-Project`.
+As rotas são as mesmas do `frontend-Project`. O redirecionamento por sessão fica em
+`lib/router.dart`, a partir do `AuthState`; `_RoleGuard` bloqueia rotas por papel.
 
----
+## Resultado de análise
 
-## Como um resultado de aprendizado aparece:
+`analysis_result_view.dart` exibe:
 
-Cada resultado (`analysis_result_view.dart`) mostra, como na Web:
+- classe prevista, confiança em barra e texto de prioridade retornado pela API;
+- probabilidades das três classes;
+- cor associada à classe prevista;
+- aviso de apoio à decisão;
+- atributos fora da faixa observada no treino.
 
-- a classificação, a confiança como **score com barra** e a situação de acompanhamento
-  (texto calculado pelo Back-End);
-- as probabilidades das três classes;
-- a cor da classe prevista;
-- a ressalva de apoio à decisão;
-- os atributos fora da faixa observada no treino, destacados no campo e listados nos
-  avisos.
+## Formulário de atributos
 
-## Formulário de atributos:
+`features_form.dart` é montado a partir de `GET /api/students/feature-contract`. As notas
+aceitam escala portuguesa (0–20 / 0–200) ou brasileira (0–10), com a mesma conversão da Web;
+o valor gravado é o da escala portuguesa.
 
-`FeaturesForm` é **gerado** a partir de `GET /api/students/feature-contract`, que repassa
-o contrato do `backend-MD`: nome, rótulo, tipo e faixa observada no treino. Se o modelo
-for retreinado com outro conjunto de atributos, o formulário acompanha sem mudança no
-código.
+## Lote de análise
 
-A alternância entre a escala portuguesa (0–20 / 0–200) e a brasileira (0–10) está aqui
-também, com a mesma conversão da Web: o valor guardado é sempre o da escala portuguesa,
-que é a que vai para a análise.
+`AnalysesService.runBatch` (`lib/services/api_services.dart`) trata `200` (resultados na
+resposta) e `202` (consulta `GET /api/analyses/jobs/{id}` a cada 2 s, limite de 5 min,
+erro `ANALYSIS_JOB_PENDING`), com os mesmos parâmetros da Web.
 
----
+## Diferenças em relação à Web
 
-## Diferenças em relação à Web:
-
-O app usa os mesmos tokens de cor, raio, espaçamento e tipografia da Web, portados de
-`global.css` para `core/theme.dart`. A interação muda onde o celular pede:
+Cores, raios, espaçamentos e tipografia de `frontend-Project/src/css/global.css` estão em
+`lib/core/theme.dart`.
 
 | Web | Mobile |
 | --- | --- |
-| Barra lateral fixa (248px) | Gaveta pela barra superior |
-| Tabelas de 5–7 colunas | Um bloco por registro, dados empilhados |
-| Filtros sempre visíveis na toolbar | Filtros recolhidos atrás de "Filtros" |
-| Tooltip de atributo no *hover* | Folha inferior ao tocar no ícone |
-| Modal centralizado | Folha inferior |
+| Barra lateral fixa (248 px) | Drawer aberto pela barra superior |
+| Tabelas de 5 a 7 colunas | Um card por registro |
+| Filtros visíveis na toolbar | Filtros recolhidos |
+| Tooltip de atributo no hover | Bottom sheet ao tocar no ícone |
+| Modal centralizado | Bottom sheet |
 | Painel de marca no login | Marca compacta |
-| — | Puxar para atualizar |
-| Menu de usuário na barra superior | Tela `/profile` |
-| Glifos de texto nos ícones (`◧`, `◔`, `∅`) | Material Icons |
+| | Pull-to-refresh |
+| Menu do usuário na barra superior | Tela `/profile` |
+| Glifos de texto (`◧`, `◔`, `∅`) | Material Icons |
 
----
-
-## Estrutura:
+## Estrutura
 
 ```text
 mobile-Project/
-├── assets/locales/            pt-BR · en-US · es-ES (cópias fiéis das da Web)
+├── assets/
+│   ├── locales/               pt-BR, en-US, es-ES (mesmos arquivos da Web)
+│   └── brand/
+├── branding/                  fontes do ícone e do splash
 ├── lib/
+│   ├── main.dart              MultiProvider: AuthState, I18nState, ThemeState, Api
+│   ├── router.dart            rotas e redirecionamento
 │   ├── core/
-│   │   ├── config.dart        única URL de API (a da VM)
-│   │   ├── api_client.dart    cliente HTTP, erros e token seguro
-│   │   └── theme.dart         tokens do global.css portados
-│   ├── models/                contratos da API em Dart
-│   ├── services/
-│   │   └── api_services.dart  um serviço por área funcional
-│   ├── state/                 auth, i18n, tema, tradução de erro
+│   │   ├── config.dart        AppConfig.apiBaseUrl
+│   │   ├── api_client.dart    cliente HTTP, token, erros
+│   │   └── theme.dart
+│   ├── models/                contratos da API
+│   ├── services/api_services.dart
+│   ├── state/                 auth, i18n, tema, tradução de erros
 │   ├── widgets/
-│   │   ├── ui.dart            primitivos: card, stat, selo, medidor, alerta…
-│   │   ├── charts.dart        rosca, barras e série temporal (CustomPainter)
-│   │   ├── app_shell.dart     gaveta, barra superior, cabeçalho de tela
-│   │   ├── async_builder.dart carregando/erro/dados, ignorando resposta atrasada
-│   │   ├── features_form.dart formulário gerado pelo contrato do modelo
-│   │   └── analysis_result_view.dart  apresentação de um resultado de IA
-│   ├── pages/                 uma tela por rota
-│   ├── router.dart            rotas + redirecionamento por sessão
-│   └── main.dart
-└── test/                      testes de unidade
+│   │   ├── ui.dart            card, stat, selo, medidor, alerta
+│   │   ├── charts.dart        rosca, barras, série temporal
+│   │   ├── app_shell.dart     drawer, barra superior, cabeçalho
+│   │   ├── async_builder.dart
+│   │   ├── features_form.dart
+│   │   └── analysis_result_view.dart
+│   └── pages/                 uma página por rota
+└── test/
 ```
-
-Toda chamada HTTP passa por `services/api_services.dart`, sobre o cliente de
-`core/api_client.dart`.
-
-`AsyncBuilder` numera as requisições e descarta a resposta que chega fora de ordem,
-evitando que um resultado atrasado sobrescreva a tela com dado obsoleto ao trocar filtros
-rapidamente.
